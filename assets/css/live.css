@@ -1,0 +1,566 @@
+/* =========================================================
+   LIVE SCOREBOARD — fixed 16:9 broadcast frame
+
+   Everything lives inside a 1920x1080 stage that is scaled to fit
+   whatever space it is given. That means:
+     - on the website the whole board is always visible, no scrolling
+     - in OBS, set the Browser Source to 1920x1080 and it is pixel exact
+
+   Grid inside the stage:
+     capA   |  topbar + stadium   |  capB
+     banA   |  logo strip         |  banB
+     score  |  over bar / event / upcoming  (spans right)
+     ---------------------------------------------------------
+     batter 1      |     batter 2     |     bowler
+   ========================================================= */
+
+.live-wrap{padding:10px 14px 24px}
+
+/* the 16:9 box — never taller than the viewport */
+.stage-wrap{
+  position:relative;
+  width:min(100%, calc((100vh - 150px) * 16 / 9));
+  aspect-ratio:16 / 9;
+  margin:0 auto;
+  overflow:hidden;
+  border-radius:16px;
+}
+
+/* the real canvas, always 1920x1080, scaled by JS */
+.stage{
+  position:absolute;top:0;left:0;
+  width:1920px;height:1080px;
+  transform-origin:top left;
+  padding:12px;
+  display:flex;flex-direction:column;gap:8px;
+}
+
+.broadcast{
+  flex:1;
+  display:grid;
+  grid-template-columns:400px minmax(0,1fr) 400px;
+  grid-template-rows:568px 74px minmax(0,1fr);
+  grid-template-areas:
+    "capA  stage  capB"
+    "banA  logo   banB"
+    "score wide   wide";
+  gap:8px;
+  min-height:0;
+}
+.a-capA{grid-area:capA}   .a-stage{grid-area:stage}  .a-capB{grid-area:capB}
+.a-banA{grid-area:banA}   .a-logo{grid-area:logo}    .a-banB{grid-area:banB}
+.a-score{grid-area:score} .a-wide{grid-area:wide}
+
+/* =========================================================
+   STREAM MODE — index.html?stream=1
+   Hides nav, footer and operator chrome, drops the background,
+   and fills the window. Point OBS at that URL.
+   ========================================================= */
+body.stream{background:transparent}
+body.stream .nav,
+body.stream .footer,
+body.stream .status-strip,
+body.stream .adjust-btn{display:none}
+body.stream .live-wrap{padding:0}
+body.stream .stage-wrap{
+  width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;
+}
+
+/* =========================================================
+   CAPTAIN PANELS — flag background, player cut-out
+   ========================================================= */
+.cap{
+  position:relative;overflow:hidden;
+  border:3px solid var(--edge);border-radius:14px;
+  background:var(--panel2);height:100%;
+}
+.cap .flag{
+  position:absolute;inset:-9%;width:118%;height:118%;object-fit:cover;
+  filter:saturate(1.2) brightness(.78);
+  animation:kenburns 20s ease-in-out infinite alternate;
+}
+@keyframes kenburns{
+  0%{transform:scale(1) translate(0,0)}
+  100%{transform:scale(1.15) translate(-3%,-2%)}
+}
+.cap .veil{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(5,6,10,.10),rgba(5,6,10,.02) 45%,rgba(5,6,10,.72));
+}
+.cap .shine{
+  position:absolute;top:-60%;left:-70%;width:55%;height:220%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);
+  transform:rotate(14deg);animation:shine 6s ease-in-out infinite;
+}
+@keyframes shine{0%,74%{left:-70%}100%{left:135%}}
+.cap .photo{
+  position:absolute;left:50%;bottom:0;height:94%;width:auto;max-width:none;
+  transform:translateX(-50%);
+  filter:drop-shadow(0 14px 26px rgba(0,0,0,.65));
+  animation:float 6.5s ease-in-out infinite;
+}
+@keyframes float{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(-8px)}
+}
+.cap .role{
+  position:absolute;top:10px;left:10px;z-index:2;
+  font-family:var(--cond);font-size:11.5px;font-weight:700;letter-spacing:.2em;
+  background:rgba(5,6,10,.74);border:1px solid var(--edge);color:#fff;
+  padding:3px 10px;border-radius:999px;
+}
+
+/* =========================================================
+   TEAM NAME BANNERS — chevron shape, gold outlined text
+   ========================================================= */
+.tbanner{
+  position:relative;overflow:hidden;height:74px;
+  display:flex;align-items:center;
+  background:linear-gradient(100deg,var(--grn1),var(--grn2));
+  clip-path:polygon(0 0,calc(100% - 46px) 0,100% 50%,calc(100% - 46px) 100%,0 100%);
+  padding:0 60px 0 22px;
+}
+.tbanner.right{
+  background:linear-gradient(260deg,var(--blue1),var(--blue2));
+  clip-path:polygon(46px 0,100% 0,100% 100%,46px 100%,0 50%);
+  padding:0 22px 0 60px;justify-content:flex-end;
+}
+.tbanner b{
+  position:relative;z-index:2;white-space:nowrap;
+  font-family:var(--cond);font-size:46px;font-weight:700;letter-spacing:.05em;
+  color:var(--gold);line-height:1;
+  -webkit-text-stroke:3px #05060A;paint-order:stroke fill;
+}
+.tbanner::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+  transform:translateX(-100%);animation:bandsweep 4.5s linear infinite;
+}
+@keyframes bandsweep{to{transform:translateX(100%)}}
+
+/* =========================================================
+   CENTRE — top bar + stadium stage
+   ========================================================= */
+.a-stage{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0}
+
+.topbar{
+  height:50px;flex:0 0 auto;
+  border:3px solid var(--edge);border-radius:12px;overflow:hidden;
+  background:linear-gradient(90deg,#3B1170,#6B18B8 55%,#8A1FD6);
+  display:flex;align-items:center;
+}
+.topbar .marquee{flex:1;height:100%}
+.topbar .marquee-track{
+  font-size:21px;font-weight:800;color:#E4CCFF;align-items:center;--gap:46px;
+}
+.topbar .marquee-track em{color:#fff;font-weight:900}
+.topbar .marquee-track .hot{color:var(--gold)}
+
+.stadium{
+  position:relative;flex:1;min-height:250px;
+  border:3px solid var(--edge);border-radius:14px;overflow:hidden;background:#0A1A2E;
+}
+
+/* ---- the photo, drifting slowly so the frame never sits still ---- */
+.stadium .shot{
+  position:absolute;inset:-4%;width:108%;height:108%;
+  object-fit:cover;
+  opacity:0;transition:opacity .09s linear;
+  animation:shotdrift 26s ease-in-out infinite alternate;
+}
+.stadium .shot.on{opacity:1}
+
+/* ---- player layers ----
+   Each figure is positioned by its FEET, so left/top place the point
+   where the player stands and the image grows upward from there. ---- */
+.stadium .figure{
+  position:absolute;
+  transform:translate(-50%,-100%);
+  pointer-events:none;
+  animation:breathe 4.2s ease-in-out infinite;
+}
+.stadium .figure .ply{
+  position:absolute;bottom:0;left:50%;
+  height:100%;width:auto;max-width:none;
+  transform:translateX(-50%);
+  opacity:0;transition:opacity .07s linear;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.45));
+}
+.stadium .figure .ply.on{opacity:1}
+.stadium .figure.flip .ply{transform:translateX(-50%) scaleX(-1)}
+@keyframes breathe{0%,100%{margin-top:0}50%{margin-top:-.35%}}
+
+#bowlFig{z-index:3}
+#batFig{z-index:2}
+#keeperFig{z-index:1}
+@keyframes shotdrift{
+  0%  {transform:scale(1.00) translate(0,0)}
+  100%{transform:scale(1.07) translate(-1.6%,-1.2%)}
+}
+
+/* ---- video layers ---- */
+.stadium .vid{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;background:#0A1A2E;
+  opacity:0;transition:opacity .28s ease;
+}
+.stadium .vid.on{opacity:1}
+.stadium .vid.shot{z-index:2}
+.stadium .vid.idle{z-index:1}
+
+/* ---- floodlight glow, sitting over the towers in the photo ---- */
+.stadium .glow{
+  position:absolute;width:16%;padding-bottom:16%;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,247,214,.72),rgba(255,247,214,.16) 45%,transparent 70%);
+  transform:translate(-50%,-50%);pointer-events:none;
+  animation:glowpulse 3.6s ease-in-out infinite;
+}
+@keyframes glowpulse{0%,100%{opacity:.45}50%{opacity:.95}}
+
+/* ---- haze drifting across the stands ---- */
+.stadium .haze{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.07) 50%,transparent 65%);
+  background-size:220% 100%;
+  animation:hazedrift 17s linear infinite;
+}
+@keyframes hazedrift{from{background-position:-60% 0}to{background-position:160% 0}}
+
+/* ---- crowd sparkle ---- */
+.stadium .sparkle{
+  position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;
+  animation:twinkle 1.6s steps(2,end) infinite alternate;pointer-events:none;
+}
+@keyframes twinkle{from{opacity:.12}to{opacity:.85}}
+
+/* ---- the ball ---- */
+.stadium .ball{
+  position:absolute;z-index:4;width:1.5%;padding-bottom:1.5%;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#FF6B5E,#C4141C 62%,#7A0A10);
+  box-shadow:0 0 10px rgba(0,0,0,.55),0 0 16px rgba(255,120,90,.45);
+  transform:translate(-50%,-50%);opacity:0;pointer-events:none;
+}
+.stadium .trail{
+  position:absolute;z-index:4;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;
+}
+.stadium .trail path{fill:none;stroke:#FFE20A;stroke-width:2.6;stroke-linecap:round}
+
+/* ---- boundary flash ---- */
+.stadium .flashlayer{
+  position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.9),rgba(255,226,10,.35) 40%,transparent 72%);
+}
+.stadium .flashlayer.go{animation:hitflash .5s ease-out}
+@keyframes hitflash{0%{opacity:.85}100%{opacity:0}}
+
+/* ---- camera shake on a six or a wicket ---- */
+.stadium.shake{animation:camshake .55s cubic-bezier(.36,.07,.19,.97)}
+@keyframes camshake{
+  0%,100%{transform:translate(0,0) rotate(0)}
+  15%{transform:translate(-7px,4px) rotate(-.35deg)}
+  32%{transform:translate(6px,-5px) rotate(.3deg)}
+  50%{transform:translate(-4px,3px) rotate(-.2deg)}
+  70%{transform:translate(3px,-2px) rotate(.12deg)}
+  86%{transform:translate(-1px,1px) rotate(0)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .stadium .shot,.stadium .glow,.stadium .haze,.stadium .sparkle{animation:none}
+  .stadium.shake{animation:none}
+}
+
+.burst{
+  position:absolute;inset:0;z-index:5;display:grid;place-items:center;pointer-events:none;
+  font-size:clamp(40px,7vw,96px);font-weight:900;letter-spacing:-.02em;
+  -webkit-text-stroke:5px #05060A;paint-order:stroke fill;opacity:0;
+}
+.burst.go{animation:burst .95s cubic-bezier(.2,.9,.25,1) forwards}
+@keyframes burst{
+  0%{opacity:0;transform:scale(.4) rotate(-7deg);filter:blur(10px)}
+  22%{opacity:1;transform:scale(1.12) rotate(2deg);filter:blur(0)}
+  35%{transform:scale(1) rotate(0)}
+  78%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(1.3);filter:blur(6px)}
+}
+.burst.four{color:#F0A21A} .burst.six{color:#C36BFF}
+.burst.out{color:#FF3B45}  .burst.wide{color:#3BE07A}
+.burst.dot{color:#9AA7C2;font-size:clamp(26px,3.6vw,52px)}
+
+/* =========================================================
+   LOGO STRIP — light bar, as in the reference
+   ========================================================= */
+.logostrip{
+  height:74px;position:relative;overflow:hidden;
+  border:3px solid var(--edge);border-radius:12px;
+  background:linear-gradient(90deg,#E9ECF3,#FFFFFF 50%,#E9ECF3);
+  display:flex;align-items:center;justify-content:center;gap:16px;
+}
+.logostrip::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(231,91,255,.28),transparent);
+  transform:translateX(-100%);animation:bandsweep 5.5s linear infinite;
+}
+.logostrip .mark{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;z-index:2;
+  background:conic-gradient(from 210deg,#F07A12,#E5399B,#3B6BF0,#4BE056,#F07A12);
+  display:grid;place-items:center;
+  font-weight:900;color:#0A0710;font-size:19px;letter-spacing:-.5px;
+  animation:spin-hue 9s linear infinite;
+  box-shadow:0 0 0 3px #0A0B12;
+}
+.logostrip .t{
+  z-index:2;font-family:var(--cond);font-size:27px;font-weight:700;
+  letter-spacing:.2em;color:#0C1220;
+}
+.logostrip .t i{font-style:normal;color:#D31A2B}
+
+/* =========================================================
+   LEFT COLUMN row 3 — score, over, crowd sliver
+   ========================================================= */
+.a-score{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0}
+
+.scorebox{
+  position:relative;overflow:hidden;
+  border:3px solid var(--edge);border-radius:12px;
+  background:linear-gradient(105deg,var(--grn1),var(--grn2));
+}
+.scorebox::before{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg,rgba(255,255,255,.08) 0 12px,transparent 12px 26px);
+  animation:stripes 9s linear infinite;
+}
+@keyframes stripes{to{background-position:260px 0}}
+.scorebox .runs{
+  position:relative;padding:8px 16px 2px;
+  font-size:60px;font-weight:900;line-height:1;color:#fff;letter-spacing:-2px;
+  -webkit-text-stroke:4px #05060A;paint-order:stroke fill;
+}
+.scorebox .meta{
+  position:relative;display:flex;gap:12px;padding:0 16px 8px;
+  font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.1em;color:#04240F;
+}
+
+.overbox{
+  border:3px solid var(--edge);border-radius:12px;
+  background:linear-gradient(90deg,var(--blue1),var(--blue2));
+  padding:8px 16px;display:flex;align-items:center;gap:11px;
+}
+.overbox .k{font-family:var(--cond);font-size:19px;font-weight:700;letter-spacing:.14em;color:#CFE0FF}
+.overbox .tri{color:var(--gold)}
+.overbox .val{font-size:25px;font-weight:900;color:#fff;-webkit-text-stroke:3px #05060A;paint-order:stroke fill}
+
+/* animated crowd sliver — nothing on this page sits still */
+.crowdstrip{
+  flex:1;min-height:58px;border:2px solid var(--line);border-radius:12px;overflow:hidden;
+  background:linear-gradient(180deg,#0B1730,#061021);
+}
+.crowdstrip svg{width:100%;height:100%;display:block}
+
+.outbox{
+  flex:1;min-height:0;
+  border:2px solid var(--line);border-radius:12px;background:var(--panel);
+  padding:8px 14px;display:flex;flex-direction:column;justify-content:center;
+}
+.outbox .lab{font-family:var(--cond);font-size:11px;letter-spacing:.2em;color:var(--red);font-weight:700}
+.outbox .val{font-size:15px;font-weight:700;margin-top:1px}
+
+/* =========================================================
+   WIDE STACK — over bar, event, upcoming
+   ========================================================= */
+.a-wide{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0}
+
+.overstrip{
+  flex:1;min-height:0;
+  border:3px solid var(--edge);border-radius:12px;background:#06070E;
+  display:flex;align-items:center;gap:11px;padding:9px 16px;
+}
+.overstrip .ovlabel{
+  font-family:var(--cond);font-size:29px;font-weight:700;letter-spacing:.05em;
+  color:#fff;white-space:nowrap;
+  -webkit-text-stroke:2px #05060A;paint-order:stroke fill;
+}
+.balls{display:flex;gap:8px;flex-wrap:wrap}
+.bl{
+  width:44px;height:44px;border-radius:12px;background:#1E2740;
+  display:grid;place-items:center;font-size:22px;font-weight:900;color:#fff;
+}
+.bl.pop{animation:blpop .42s cubic-bezier(.2,.9,.25,1)}
+@keyframes blpop{
+  0%{transform:scale(.2) rotate(-25deg);opacity:0}
+  60%{transform:scale(1.25) rotate(6deg);opacity:1}
+  100%{transform:scale(1) rotate(0)}
+}
+.bl.r1{background:#2B6BE8} .bl.r4{background:#F0A21A;color:#241300}
+.bl.r6{background:#8A1FD6} .bl.x{background:#0FA34A;font-size:14px}
+.bl.dot{background:#242D46;color:#6F7C9C}
+.bl.w{background:var(--red);animation:wshake .5s}
+@keyframes wshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.overstrip .eq{font-size:24px;font-weight:900;color:#fff;margin-left:auto}
+.overstrip .tot{
+  min-width:56px;height:44px;padding:0 12px;border-radius:12px;background:#fff;
+  display:grid;place-items:center;font-size:25px;font-weight:900;color:#06070E;
+}
+
+.evbar{
+  flex:0 0 54px;height:54px;border:3px solid var(--edge);border-radius:12px;overflow:hidden;
+  display:flex;align-items:stretch;background:var(--panel);
+}
+.evbar .tag{
+  flex:0 0 auto;display:flex;align-items:center;padding:0 16px;
+  font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.18em;color:#07080F;
+}
+.evbar.now .tag{background:linear-gradient(100deg,var(--gold),#FFB800)}
+.evbar.next .tag{background:linear-gradient(100deg,var(--grn2),#0FA34A);color:#04240F}
+.evbar .marquee{flex:1}
+.evbar .marquee-track{font-size:19px;font-weight:700;color:var(--txt);--gap:48px}
+
+/* =========================================================
+   BOTTOM — batter / batter / bowler + moving bat marker
+   ========================================================= */
+.players{position:relative;flex:0 0 176px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+
+.pcard{
+  position:relative;overflow:hidden;
+  border:3px solid var(--edge);border-radius:14px;
+  background:linear-gradient(100deg,#0A0B12 40%,#141A38);
+  display:flex;flex-direction:column;
+}
+.pcard.bowl{background:linear-gradient(100deg,#0A0B12 40%,#122A6B)}
+.pcard.striker{box-shadow:0 0 0 3px rgba(255,226,10,.6),0 0 32px rgba(255,226,10,.3)}
+.pcard .main{flex:1;display:flex;align-items:flex-end;min-height:0;position:relative}
+.pcard .photo{width:112px;height:100%;flex:0 0 112px;object-fit:cover;object-position:top center}
+.pcard .txt{flex:1;padding:0 14px 9px;min-width:0}
+.pcard .pname{
+  font-size:29px;font-weight:800;color:#fff;line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  -webkit-text-stroke:2px #05060A;paint-order:stroke fill;
+}
+.pcard .pfig{
+  font-size:37px;font-weight:900;color:var(--gold);line-height:1.1;
+  -webkit-text-stroke:2px #05060A;paint-order:stroke fill;
+}
+.pcard .tag{
+  position:absolute;top:0;right:12px;
+  background:#0A0B12;border:2px solid var(--edge);border-top:0;border-radius:0 0 12px 12px;
+  padding:2px 12px;font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.16em;color:#fff;
+}
+.pcard .stats{
+  background:linear-gradient(90deg,#3A2A00,#151004);
+  border-top:2px solid var(--edge);
+  flex:0 0 40px;display:flex;align-items:center;justify-content:center;gap:22px;
+}
+.pcard .stats b{font-family:var(--cond);font-size:18px;font-weight:700;color:#fff;letter-spacing:.05em}
+.pcard .stats b i{font-style:normal;color:var(--gold);font-weight:800}
+
+.batmark{
+  position:absolute;top:-15px;width:54px;height:54px;z-index:6;
+  display:grid;place-items:center;font-size:33px;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.65));
+  transition:left .5s cubic-bezier(.34,1.4,.5,1);
+  animation:batwig 1.6s ease-in-out infinite;
+}
+@keyframes batwig{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+
+/* =========================================================
+   VALUE CHANGE ANIMATION
+   ========================================================= */
+.anim{position:relative;display:inline-block;overflow:hidden;vertical-align:bottom}
+.anim > .v{display:inline-block}
+.anim > .old{position:absolute;left:0;top:0;white-space:nowrap}
+@keyframes vIn {from{transform:translateY(85%);opacity:0;filter:blur(7px)}to{transform:none;opacity:1;filter:none}}
+@keyframes vOut{from{transform:none;opacity:1;filter:none}to{transform:translateY(-85%);opacity:0;filter:blur(7px)}}
+.anim > .v.go  {animation:vIn  .30s cubic-bezier(.2,.9,.25,1)}
+.anim > .old.go{animation:vOut .30s cubic-bezier(.2,.9,.25,1) forwards}
+.flash{animation:flash .55s ease-out}
+@keyframes flash{0%{filter:brightness(2.6) drop-shadow(0 0 18px currentColor)}100%{filter:none}}
+
+/* =========================================================
+   STATUS + ADJUST PANEL
+   ========================================================= */
+.status-strip{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-bottom:10px;font-size:13.5px;color:var(--mut);
+}
+.dotled{width:9px;height:9px;border-radius:50%;background:var(--red);animation:blink 1.3s infinite}
+.dotled.on{background:var(--grn2)}
+
+.adjust-btn{
+  position:fixed;right:18px;bottom:18px;z-index:300;
+  width:54px;height:54px;border-radius:50%;border:2px solid var(--edge);
+  background:var(--panel);color:var(--txt);font-size:22px;cursor:pointer;
+  box-shadow:0 8px 26px rgba(0,0,0,.5);
+}
+.adjust{
+  position:fixed;top:0;right:0;bottom:0;width:min(420px,92vw);z-index:310;
+  background:var(--panel);border-left:1px solid var(--line);
+  padding:20px;overflow-y:auto;
+  transform:translateX(105%);transition:transform .38s cubic-bezier(.2,.8,.3,1);
+}
+.adjust.open{transform:none}
+.adjust h3{margin-bottom:4px}
+.adjust p.hint{color:var(--mut);font-size:13px;margin-bottom:16px}
+.adjust fieldset{border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:14px}
+.adjust legend{font-family:var(--cond);font-size:12px;letter-spacing:.18em;color:var(--edge);padding:0 7px;font-weight:700}
+.adjust label{display:block;margin-bottom:9px}
+.adjust label span{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.adjust input{
+  width:100%;background:#080B14;border:1px solid var(--line);color:var(--txt);
+  border-radius:8px;padding:8px 10px;font-family:inherit;font-size:14px;
+}
+.adjust .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.adjust .close{position:absolute;top:14px;right:16px;background:none;border:0;color:var(--mut);font-size:26px;cursor:pointer}
+
+/* =========================================================
+   MOBILE — below 900px the fixed stage would scale text into
+   nothing, so we drop back to a normal stacked flow layout.
+   ========================================================= */
+@media(max-width:900px){
+  .stage-wrap{
+    position:static;width:auto;height:auto;aspect-ratio:auto;overflow:visible;
+  }
+  .stage{
+    position:static;width:auto;height:auto;
+    transform:none !important;padding:0;
+  }
+  .broadcast{
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto;
+    grid-template-areas:
+      "capA  capB"
+      "banA  banB"
+      "stage stage"
+      "logo  logo"
+      "score score"
+      "wide  wide";
+  }
+  .cap{height:auto;min-height:230px}
+  .a-stage{min-height:230px}
+  .tbanner{height:60px}
+  .tbanner b{font-size:34px}
+  .players{flex:none;grid-template-columns:1fr;margin-top:8px}
+  .pcard .main{min-height:112px}
+  .batmark{display:none}
+  .scorebox .runs{font-size:46px}
+  .pcard .pname{font-size:23px} .pcard .pfig{font-size:29px}
+  .overstrip .ovlabel{font-size:22px}
+  .bl{width:36px;height:36px;font-size:18px}
+  .outbox{flex:none}
+  .overstrip{flex:none}
+}
+
+/* stream mode always uses the fixed stage, even on a small window */
+@media(max-width:900px){
+  body.stream .stage-wrap{position:relative;width:100vw;height:100vh;overflow:hidden}
+  body.stream .stage{position:absolute;width:1920px;height:1080px;padding:12px}
+  body.stream .broadcast{
+    grid-template-columns:400px minmax(0,1fr) 400px;
+    grid-template-rows:568px 74px minmax(0,1fr);
+    grid-template-areas:
+      "capA  stage  capB"
+      "banA  logo   banB"
+      "score wide   wide";
+  }
+  body.stream .cap{height:100%}
+  body.stream .players{flex:0 0 176px;grid-template-columns:repeat(3,1fr);margin-top:0}
+  body.stream .batmark{display:grid}
+}

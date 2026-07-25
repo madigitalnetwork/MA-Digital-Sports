@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Schedule — MA Digital Sports</title>
+<meta name="description" content="Upcoming, live and recent cricket fixtures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/base.css">
+</head>
+<body>
+<div data-nav></div>
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div>
+        <p class="eyebrow">Fixtures &amp; results</p>
+        <h1>Schedule</h1>
+      </div>
+    </div>
+    <p class="lead rv" style="margin-bottom:26px">Live now, coming up, and just finished. This list fills itself from the API whenever the server is running.</p>
+    <div class="grid g3" id="schedGrid">
+      <div class="card rv"><div class="body"><div class="kicker">Loading</div><h3>Fetching fixtures…</h3></div></div>
+    </div>
+  </div>
+</section>
+<div data-footer></div>
+<script src="assets/js/site.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const short = t => { const m=/\[(.+?)\]/.exec(t||""); return m?m[1]:(t||"TBC").slice(0,3).toUpperCase(); };
+  try{
+    const r = await fetch("/api/matches", {cache:"no-store"});
+    const j = await r.json();
+    if(!j.ok) throw 0;
+    const order = {live:0, fixture:1, result:2};
+    const rows = j.data.slice().sort((a,b)=>(order[(a.ms||"").toLowerCase()]??3)-(order[(b.ms||"").toLowerCase()]??3));
+    document.getElementById("schedGrid").innerHTML = rows.map(m=>{
+      const st=(m.ms||"").toLowerCase();
+      const badge = st==="live"?"LIVE NOW":st==="fixture"?"UPCOMING":"RESULT";
+      const when = m.dateTimeGMT ? new Date(m.dateTimeGMT.replace(" ","T")+"Z")
+        .toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "";
+      return `<article class="card rv in"><div class="body">
+        <div class="kicker">${badge}</div>
+        <h3>${short(m.t1)} vs ${short(m.t2)}</h3>
+        <p style="color:var(--txt);font-weight:700">${m.t1s||"—"} &nbsp;|&nbsp; ${m.t2s||"—"}</p>
+        <p>${m.status||""}</p>
+        <p style="font-family:var(--cond);letter-spacing:.1em;color:var(--gold)">${when}</p>
+      </div></article>`;
+    }).join("");
+  }catch(_){
+    document.getElementById("schedGrid").innerHTML =
+      `<div class="card rv in"><div class="body"><div class="kicker">Offline</div>
+       <h3>Server is not running</h3><p>Start it with <code>node server.js</code> to load fixtures.</p></div></div>`;
+  }
+});
+</script>
+</body></html>

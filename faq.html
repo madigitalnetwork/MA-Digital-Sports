@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAQ — MA Digital Sports</title>
+<meta name="description" content="Common questions about score updates, data sources and how the site works.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/base.css">
+</head>
+<body>
+<div data-nav></div>
+
+<section class="sec">
+  <div class="wrap" style="max-width:880px">
+    <div class="sec-head rv">
+      <div><p class="eyebrow">Common questions</p><h1>FAQ</h1></div>
+    </div>
+    <p class="lead rv" style="margin-bottom:28px">The things people ask most often.</p>
+
+    <div class="rv">
+      <div class="faq-item">
+        <button class="faq-q">How often does the score update?</button>
+        <div class="faq-a"><p>Every six seconds. The server fetches from the API and the page changes
+        itself — you never need to reload.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">Is the stadium view real footage?</button>
+        <div class="faq-a"><p>No, it is an SVG animation built entirely in code. The shot played matches the
+        outcome of the ball: on a four the ball races along the ground to the rope, on a six it arcs high and
+        clears it, and on a wicket the bails fly off. Because no video file loads, the page stays light.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">Where does ball-by-ball data come from?</button>
+        <div class="faq-a"><p>Free cricket APIs only return the running total, not a record of each delivery.
+        So the server compares two consecutive updates — if the score went up by four and the ball count went
+        up by one, that was a boundary. If you need exact ball-by-ball data, subscribe to a paid feed (CricAPI's
+        ball-by-ball plan, EntitySport, and similar) and change one function in the server.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">What if the score shown is wrong?</button>
+        <div class="faq-a"><p>There is a gear button at the bottom right of the live page. From there you can
+        correct the teams, score, overs, target and player names instantly. Any field you edit by hand is left
+        alone by later API updates.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">How do I add team flags and captain photos?</button>
+        <div class="faq-a"><p>Drop the images into <code>assets/img/</code> and enter the path in the adjust
+        panel — for example <code>assets/img/pak-flag.jpg</code>. Captain photos look best as PNGs with the
+        background already removed.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">Can I use this as an OBS stream overlay?</button>
+        <div class="faq-a"><p>Yes. Add the live page as a Browser Source, or run just the scoreboard portion as
+        a separate overlay file. A dedicated overlay is better for streaming because its background is
+        transparent and sits cleanly over your video.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">Where do I get an API key?</button>
+        <div class="faq-a"><p>Sign up free at cricketdata.org, copy the key from your member area, and start the
+        server with <code>CRIC_API_KEY=your_key node server.js</code>. Never put the key in an HTML file —
+        anyone can read it there.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q">Does it work on mobile?</button>
+        <div class="faq-a"><p>Yes. On a narrow screen the three columns stack and the player cards go one per
+        row. If someone has reduced motion turned on in their system settings, the site cuts back the
+        animation automatically.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div data-footer></div>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

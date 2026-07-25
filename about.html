@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About — MA Digital Sports</title>
+<meta name="description" content="About MA Digital Sports — what we cover and where the data comes from.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/base.css">
+<style>
+  .split{display:grid;grid-template-columns:1.3fr 1fr;gap:38px;align-items:start}
+  @media(max-width:900px){.split{grid-template-columns:1fr}}
+  .prose p{color:var(--mut);margin-bottom:16px;font-size:16.5px}
+  .prose h3{margin:28px 0 10px}
+  .steps{counter-reset:s;display:grid;gap:12px;margin-top:8px}
+  .step{
+    position:relative;border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    padding:15px 18px 15px 62px;
+  }
+  .step::before{
+    counter-increment:s;content:counter(s,decimal-leading-zero);
+    position:absolute;left:18px;top:15px;
+    font-family:var(--cond);font-size:22px;font-weight:700;color:var(--edge);
+  }
+  .step b{display:block;margin-bottom:3px}
+  .step span{color:var(--mut);font-size:14.5px}
+</style>
+</head>
+<body>
+<div data-nav></div>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><p class="eyebrow">Who we are</p><h1>About</h1></div>
+    </div>
+
+    <div class="split">
+      <div class="prose rv">
+        <p class="lead">MA Digital Sports is a cricket coverage platform. The goal is simple —
+        present every ball of a match clearly, quickly and in a way that is actually pleasant to look at.</p>
+
+        <h3>What this site does</h3>
+        <p>On the live page, the score, overs, partnership, batter strike rates and bowler economy all
+        update themselves every few seconds. In the middle sits an animated stadium view where the shot
+        played matches the outcome of the ball — a four, a six, or a wicket.</p>
+
+        <h3>Where the data comes from</h3>
+        <p>Scores are supplied by a third-party cricket data API. The server polls that API and hands
+        ready-made data to the browser, so whether one person is watching or a thousand, the load on the
+        API stays the same.</p>
+
+        <h3>How it works</h3>
+        <div class="steps">
+          <div class="step"><b>The server polls the API</b><span>Every six seconds. The key lives on the server, never in the browser.</span></div>
+          <div class="step"><b>It works out the difference</b><span>Comparing two updates tells us what happened on the ball in between.</span></div>
+          <div class="step"><b>The page updates itself</b><span>Numbers animate as they change and the stadium plays the matching shot.</span></div>
+          <div class="step"><b>Manual correction when needed</b><span>The adjust panel lets an operator fix anything on the spot.</span></div>
+        </div>
+      </div>
+
+      <aside class="rv" id="contact">
+        <div class="card"><div class="body">
+          <div class="kicker">Contact</div>
+          <h3>Get in touch</h3>
+          <p>Coverage requests, corrections or collaboration — send a message.</p>
+          <div style="display:grid;gap:9px;margin-top:16px">
+            <a class="btn" href="#">YouTube channel</a>
+            <a class="btn" href="#">Facebook page</a>
+            <a class="btn primary" href="index.html">Live score</a>
+          </div>
+        </div></div>
+
+        <div class="card" style="margin-top:16px"><div class="body">
+          <div class="kicker">Note</div>
+          <p style="font-size:14.5px">Scores come from a third-party API and can occasionally run a second or
+          two behind. The official scorecard is always the final word.</p>
+        </div></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<div data-footer></div>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

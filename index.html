@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Score — MA Digital Sports</title>
+<meta name="description" content="Ball-by-ball live cricket score with an animated stadium view.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/live.css">
+</head>
+<body>
+<div data-nav></div>
+
+<main class="live-wrap">
+
+  <div class="status-strip">
+    <span class="dotled" id="connLed"></span>
+    <span id="connTxt">Connecting…</span>
+  </div>
+
+  <div class="stage-wrap">
+   <div class="stage" id="stage">
+
+    <div class="broadcast">
+
+    <!-- ROW 1 LEFT — batting captain -->
+    <div class="cap a-capA">
+      <img class="flag" id="flagA" alt="">
+      <span class="veil"></span><span class="shine"></span>
+      <span class="role" id="roleA">CAPTAIN</span>
+      <img class="photo" id="capA" alt="">
+    </div>
+
+    <!-- ROW 1 CENTRE — scrolling top bar + stadium -->
+    <div class="a-stage">
+      <div class="topbar">
+        <div class="marquee" id="topMarquee"><div class="marquee-track"></div></div>
+      </div>
+      <div class="stadium" id="stadium">
+        <div class="burst" id="burst"></div>
+      </div>
+    </div>
+
+    <!-- ROW 1 RIGHT — bowling captain -->
+    <div class="cap a-capB">
+      <img class="flag" id="flagB" alt="">
+      <span class="veil"></span><span class="shine"></span>
+      <span class="role" id="roleB">CAPTAIN</span>
+      <img class="photo" id="capB" alt="">
+    </div>
+
+    <!-- ROW 2 — team banners + logo strip -->
+    <div class="tbanner a-banA"><b id="teamAName">TBC</b></div>
+
+    <div class="logostrip a-logo">
+      <span class="mark">MA</span>
+      <span class="t">MA DIGITAL <i>SPORTS</i></span>
+      <span class="mark">MA</span>
+    </div>
+
+    <div class="tbanner right a-banB"><b id="teamBName">TBC</b></div>
+
+    <!-- ROW 3 LEFT — score, over, crowd -->
+    <div class="a-score">
+      <div class="scorebox">
+        <div class="runs"><span class="anim" id="scoreRuns"><span class="v">0-0</span></span></div>
+        <div class="meta"><span id="scoreCRR">CRR 0.00</span><span id="scoreOf">OF 20 OV</span></div>
+      </div>
+
+      <div class="overbox">
+        <span class="k">OVER</span><span class="tri">&#9654;</span>
+        <span class="val anim" id="scoreOvers"><span class="v">0.0</span></span>
+      </div>
+
+      <div class="outbox">
+        <div class="lab">LAST OUT</div>
+        <div class="val" id="lastOut">&mdash;</div>
+      </div>
+
+    </div>
+
+    <!-- ROW 3 CENTRE+RIGHT — over bar, event, upcoming -->
+    <div class="a-wide">
+      <div class="overstrip">
+        <span class="ovlabel">Over <span id="overNo">1</span></span>
+        <span class="balls" id="ballsBox"></span>
+        <span class="eq">=</span>
+        <span class="tot" id="overTot">0</span>
+      </div>
+
+      <div class="evbar now">
+        <span class="tag">EVENT</span>
+        <div class="marquee" id="evNow"><div class="marquee-track"></div></div>
+      </div>
+
+      <div class="evbar next">
+        <span class="tag">UPCOMING</span>
+        <div class="marquee" id="evNext"><div class="marquee-track"></div></div>
+      </div>
+    </div>
+
+    </div>
+
+    <!-- BOTTOM ROW — batters and bowler -->
+    <div class="players">
+    <span class="batmark" id="batMark">&#127951;</span>
+
+    <article class="pcard" id="card1">
+      <div class="main">
+        <img class="photo" id="bat1Photo" alt="">
+        <div class="txt">
+          <div class="pname anim" id="bat1Name"><span class="v">Batter 1</span></div>
+          <div class="pfig anim" id="bat1Fig"><span class="v">0 (0)</span></div>
+        </div>
+        <span class="tag">BATTING</span>
+      </div>
+      <div class="stats">
+        <b>4s <i id="bat1Four">0</i></b><b>6s <i id="bat1Six">0</i></b><b>SR <i id="bat1SR">0.00</i></b>
+      </div>
+    </article>
+
+    <article class="pcard" id="card2">
+      <div class="main">
+        <img class="photo" id="bat2Photo" alt="">
+        <div class="txt">
+          <div class="pname anim" id="bat2Name"><span class="v">Batter 2</span></div>
+          <div class="pfig anim" id="bat2Fig"><span class="v">0 (0)</span></div>
+        </div>
+        <span class="tag">BATTING</span>
+      </div>
+      <div class="stats">
+        <b>4s <i id="bat2Four">0</i></b><b>6s <i id="bat2Six">0</i></b><b>SR <i id="bat2SR">0.00</i></b>
+      </div>
+    </article>
+
+    <article class="pcard bowl" id="card3">
+      <div class="main">
+        <img class="photo" id="bowlPhoto" alt="">
+        <div class="txt">
+          <div class="pname anim" id="bowlName"><span class="v">Bowler</span></div>
+          <div class="pfig anim" id="bowlFig"><span class="v">0-0 (0.0)</span></div>
+        </div>
+        <span class="tag">BOWLING</span>
+      </div>
+      <div class="stats"><b>ECON <i id="bowlEcon">0.00</i></b></div>
+      </article>
+    </div>
+
+   </div>
+  </div>
+
+</main>
+
+<!-- ADJUST PANEL -->
+<button class="adjust-btn" id="adjustBtn" aria-label="Adjust scoreboard">&#9881;</button>
+
+<aside class="adjust" id="adjust" aria-label="Scoreboard adjust">
+  <button class="close" id="adjustClose" aria-label="Close">&times;</button>
+  <h3>Adjust</h3>
+  <p class="hint">Data arrives from the API automatically. Correct anything here and it applies straight away — any field you edit is left alone by later API updates.</p>
+
+  <fieldset>
+    <legend>Batting team</legend>
+    <div class="two">
+      <label><span>Team name</span><input data-field="teamA.name"></label>
+      <label><span>Short code</span><input data-field="teamA.short" maxlength="4"></label>
+    </div>
+    <div class="two">
+      <label><span>Captain</span><input data-field="teamA.captain"></label>
+      <label><span>Captain photo</span><input data-field="teamA.photo" placeholder="assets/img/pak-captain.png"></label>
+    </div>
+    <label><span>Flag image (panel background)</span><input data-field="teamA.flag" placeholder="assets/img/pak-flag.jpg"></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Bowling team</legend>
+    <div class="two">
+      <label><span>Team name</span><input data-field="teamB.name"></label>
+      <label><span>Short code</span><input data-field="teamB.short" maxlength="4"></label>
+    </div>
+    <div class="two">
+      <label><span>Captain</span><input data-field="teamB.captain"></label>
+      <label><span>Captain photo</span><input data-field="teamB.photo"></label>
+    </div>
+    <label><span>Flag image (panel background)</span><input data-field="teamB.flag"></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Score and target</legend>
+    <div class="two">
+      <label><span>Runs</span><input type="number" data-field="runs"></label>
+      <label><span>Wickets</span><input type="number" data-field="wickets"></label>
+    </div>
+    <div class="two">
+      <label><span>Overs</span><input type="number" data-field="overs"></label>
+      <label><span>Ball in over</span><input type="number" data-field="ballInOver"></label>
+    </div>
+    <div class="two">
+      <label><span>Total overs</span><input type="number" data-field="totalOvers"></label>
+      <label><span>Target to win</span><input type="number" data-field="target"></label>
+    </div>
+    <label><span>Status line</span><input data-field="statusText" placeholder="Pakistan need 37 off 27"></label>
+    <label><span>Toss</span><input data-field="toss" placeholder="NAM opt to bowl"></label>
+    <label><span>Last out</span><input data-field="lastMan" placeholder="Saim Ayub 4(8)"></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Test a delivery</legend>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn" data-ball="0">0</button>
+      <button class="btn" data-ball="1">1</button>
+      <button class="btn" data-ball="2">2</button>
+      <button class="btn" data-ball="4">4</button>
+      <button class="btn" data-ball="6">6</button>
+      <button class="btn" data-ball="W">W</button>
+      <button class="btn" data-ball="WD">WD</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Players</legend>
+    <div class="two">
+      <label><span>Batter 1</span><input data-field="batters.0.name"></label>
+      <label><span>Photo</span><input data-field="batters.0.photo"></label>
+    </div>
+    <div class="two">
+      <label><span>Batter 2</span><input data-field="batters.1.name"></label>
+      <label><span>Photo</span><input data-field="batters.1.photo"></label>
+    </div>
+    <div class="two">
+      <label><span>Bowler</span><input data-field="bowler.name"></label>
+      <label><span>Photo</span><input data-field="bowler.photo"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Event lines</legend>
+    <label><span>Current event</span><input data-field="eventName"></label>
+    <p class="hint" style="margin:0">Upcoming fixtures come from the API response.</p>
+  </fieldset>
+</aside>
+
+<div data-footer></div>
+
+<script src="assets/js/site.js"></script>
+<script src="assets/js/live.js"></script>
+</body>
+</html>
