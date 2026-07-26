@@ -387,10 +387,10 @@ body.stream .stage-wrap{
 .outbox{
   flex:1;min-height:0;
   border:2px solid var(--line);border-radius:12px;background:var(--panel);
-  padding:8px 14px;display:flex;flex-direction:column;justify-content:center;
+  padding:6px 14px;display:flex;flex-direction:row;align-items:center;gap:10px;
 }
-.outbox .lab{font-family:var(--cond);font-size:11px;letter-spacing:.2em;color:var(--red);font-weight:700}
-.outbox .val{font-size:15px;font-weight:700;margin-top:1px}
+.outbox .lab{font-family:var(--cond);font-size:11px;letter-spacing:.2em;color:var(--red);font-weight:700;flex:0 0 auto}
+.outbox .val{font-size:15px;font-weight:700;margin-top:0;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* =========================================================
    WIDE STACK — over bar, event, upcoming
@@ -457,14 +457,16 @@ body.stream .stage-wrap{
 .pcard.striker{box-shadow:0 0 0 3px rgba(255,226,10,.6),0 0 32px rgba(255,226,10,.3)}
 .pcard .main{flex:1;display:flex;align-items:flex-end;min-height:0;position:relative}
 .pcard .photo{width:112px;height:100%;flex:0 0 112px;object-fit:cover;object-position:top center}
-.pcard .txt{flex:1;padding:0 14px 9px;min-width:0}
+.pcard .txt{flex:1;padding:0 14px 9px;min-width:0;display:flex;align-items:baseline;gap:7px}
 .pcard .pname{
   font-size:29px;font-weight:800;color:#fff;line-height:1.1;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex:0 1 auto;min-width:0;
   -webkit-text-stroke:2px #05060A;paint-order:stroke fill;
 }
 .pcard .pfig{
   font-size:37px;font-weight:900;color:var(--gold);line-height:1.1;
+  flex:0 0 auto;white-space:nowrap;
   -webkit-text-stroke:2px #05060A;paint-order:stroke fill;
 }
 .pcard .tag{
