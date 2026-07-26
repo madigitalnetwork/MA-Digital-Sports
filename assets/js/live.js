@@ -124,22 +124,23 @@ const SCENE = {
   /* floodlight heads in the photo — the glow sits on these */
   towers: [{ x:11, y:5 }, { x:87, y:8 }],
 
-  /* far end — the pair are small because they are 20 yards away.
-     flip:true mirrors the cut-out so they face back down the pitch. */
-  batsman: { x:54.0, y:59.8, h:16.5, flip:true },
-  keeper:  { x:50.0, y:57.2, h:11.5, flip:true },
+  /* far end — the pair stand at the far crease, feet on the pitch just
+     below the boundary boards. flip:true mirrors the cut-out so they face
+     back down the pitch. */
+  batsman: { x:50.0, y:66.0, h:12.0, flip:true },
+  keeper:  { x:50.0, y:64.0, h:8.5,  flip:true },
 
   /* near end — the bowler runs away from camera, so he shrinks
      as he moves up the frame */
-  bowlerRun:    { x:41.5, y:88.5, h:23.0 },
-  bowlerGather: { x:44.0, y:82.0, h:20.0 },
-  bowlerAction: { x:46.5, y:77.5, h:17.5 },
-  bowlerFollow: { x:48.0, y:75.0, h:16.5 },
+  bowlerRun:    { x:47.0, y:89.0, h:20.0 },
+  bowlerGather: { x:48.0, y:84.0, h:18.0 },
+  bowlerAction: { x:49.0, y:80.0, h:16.0 },
+  bowlerFollow: { x:49.5, y:77.0, h:15.0 },
 
   /* ball waypoints */
-  release: { x:48.7, y:66.0 },     // leaves the bowler's hand
-  contact: { x:53.0, y:55.5 },     // meets the bat
-  ropeY:   54.0                    // the advertising boards
+  release: { x:49.0, y:74.0 },     // leaves the bowler's hand
+  contact: { x:50.0, y:62.0 },     // meets the bat
+  ropeY:   64.0                    // the advertising boards
 };
 
 /* which bat pose each outcome plays */
