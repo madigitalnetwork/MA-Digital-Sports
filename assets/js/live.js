@@ -150,7 +150,7 @@ const SCENE = {
 
   /* a scrolling LED boundary board laid over the photo's static branding.
      y/h are the band's position and thickness as a % of the panel. */
-  branding: { text:"DIGITAL SPORTS", y:47.0, h:4.6 }
+  branding: { text:"DIGITAL SPORTS", y:44.0, h:7.0 }
 };
 
 /* which bat pose each outcome plays */
@@ -201,7 +201,7 @@ function buildStadium(){
     <span class="figure" id="bowlFig">${poses(BOWL_POSES, "bowl")}</span>`;
 
   return `
-    <img class="shot on" src="${SCENE.photo}" alt="">
+    <img class="shot on${SCENE.playersInPhoto ? " still" : ""}" src="${SCENE.photo}" alt="">
     ${glows}
     <span class="haze"></span>
     ${sparkles}
