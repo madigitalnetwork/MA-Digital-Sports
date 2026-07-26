@@ -119,7 +119,7 @@ const clipFor = code =>
   VIDEO.outcomes[code] || VIDEO.delivery || VIDEO.idle || "";
 
 const SCENE = {
-  photo: "assets/img/ground.png",
+  photo: "assets/img/ground-night.png",
 
   /* This ground photo already has the bowler, batsman, keeper, umpire and
      fielders in it. So we do NOT composite cut-out players on top (that would
@@ -127,13 +127,13 @@ const SCENE = {
   playersInPhoto: true,
 
   /* floodlight heads in the photo — the glow sits on these */
-  towers: [{ x:7, y:7 }, { x:93, y:7 }],
+  towers: [{ x:9, y:6 }, { x:91, y:6 }],
 
   /* far end — the pair stand at the far crease, feet on the pitch just
      below the boundary boards. flip:true mirrors the cut-out so they face
      back down the pitch. */
   batsman: { x:50.0, y:66.0, h:12.0, flip:true },
-  keeper:  { x:52.0, y:52.0, h:8.5,  flip:true },
+  keeper:  { x:52.0, y:62.0, h:8.5,  flip:true },
 
   /* near end — the bowler runs away from camera, so he shrinks
      as he moves up the frame */
@@ -144,9 +144,13 @@ const SCENE = {
 
   /* ball waypoints — tuned to THIS photo: the bowler runs in at the near
      end and the striker stands at the far crease. */
-  release: { x:52.5, y:70.0 },     // leaves the near-end bowler's hand
-  contact: { x:48.5, y:53.0 },     // meets the bat at the far crease
-  ropeY:   36.0                    // the boundary boards
+  release: { x:55.0, y:76.0 },     // leaves the near-end bowler's hand
+  contact: { x:49.0, y:61.0 },     // meets the bat at the far crease
+  ropeY:   51.0,                   // the boundary boards
+
+  /* a scrolling LED boundary board laid over the photo's static branding.
+     y/h are the band's position and thickness as a % of the panel. */
+  branding: { text:"DIGITAL SPORTS", y:47.0, h:4.6 }
 };
 
 /* which bat pose each outcome plays */
@@ -161,7 +165,7 @@ const IMG = n => `assets/img/${n}.png`;
 
 function buildStadium(){
   if (videoMode()) return buildVideoStage();
-  const crowdTop = SCENE.playersInPhoto ? 14 : 22;   // where the crowd band sits in the photo
+  const crowdTop = SCENE.playersInPhoto ? 22 : 22;   // where the crowd band sits in the photo
   let sparkles = "";
   for (let i = 0; i < 80; i++){
     const x = 2 + Math.random() * 96;
@@ -172,6 +176,15 @@ function buildStadium(){
 
   const glows = SCENE.towers
     .map(t => `<span class="glow" style="left:${t.x}%;top:${t.y}%"></span>`).join("");
+
+  /* scrolling LED boundary board (left -> right), if configured */
+  let led = "";
+  if (SCENE.branding){
+    const unit = `<span><b class="ma">MA</b>&nbsp;${SCENE.branding.text}&nbsp;&nbsp;&bull;&nbsp;&nbsp;</span>`;
+    const half = unit.repeat(12);
+    led = `<div class="ledboard" style="top:${SCENE.branding.y}%;height:${SCENE.branding.h}%">` +
+          `<div class="ledtrack">${half}${half}</div></div>`;
+  }
 
   /* every pose is preloaded and stacked; only one of each is visible */
   const poses = (list, cls) => list
@@ -192,6 +205,7 @@ function buildStadium(){
     ${glows}
     <span class="haze"></span>
     ${sparkles}
+    ${led}
     ${figures}
 
     <svg class="trail" id="trail" viewBox="0 0 100 100" preserveAspectRatio="none">

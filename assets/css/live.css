@@ -208,6 +208,31 @@ body.stream .stage-wrap{
 .stadium .vid.shot{z-index:2}
 .stadium .vid.idle{z-index:1}
 
+/* ---- scrolling LED boundary board, overlaid on the photo's static band ---- */
+.stadium .ledboard{
+  position:absolute;left:0;right:0;z-index:1;overflow:hidden;
+  display:flex;align-items:center;
+  background:linear-gradient(180deg,#123a9e,#0a1f66 55%,#08163f);
+  box-shadow:0 1px 3px rgba(0,0,0,.55), 0 -1px 2px rgba(0,0,0,.4);
+  opacity:.94;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 13%,#000 87%,transparent);
+}
+.stadium .ledtrack{
+  display:flex;flex:none;white-space:nowrap;
+  animation:ledscroll 22s linear infinite;
+  will-change:transform;
+}
+.stadium .ledtrack span{
+  font-family:var(--cond,"Barlow Condensed"),sans-serif;font-weight:700;
+  font-size:clamp(8px,.9vw,20px);letter-spacing:.14em;line-height:1;
+  color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);padding:0 .4em;
+}
+.stadium .ledtrack .ma{color:#e8352e}
+/* left-to-right travel */
+@keyframes ledscroll{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+@media (prefers-reduced-motion:reduce){ .stadium .ledtrack{animation:none} }
+
 /* ---- floodlight glow, sitting over the towers in the photo ---- */
 .stadium .glow{
   position:absolute;width:16%;padding-bottom:16%;border-radius:50%;
