@@ -19,7 +19,7 @@ const { fetchMatches, normalise } = require("./lib/cricket");
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
-const KEY  = process.env.CRIC_API_KEY || "";
+const KEY  = process.env.CRIC_API_KEY || process.env.RAPIDAPI_KEY || "";
 const PICK = process.env.MATCH_ID || "";
 
 const CACHE_MS = 8000;
@@ -40,7 +40,7 @@ app.get("/api/live", async (req, res) => {
   try {
     const body = await cached("live", async () => {
       const rows = await fetchMatches(KEY);
-      return { ok:true, source:"cricketdata.org (local)", at:Date.now(), state:normalise(rows, PICK) };
+      return { ok:true, source:"rapidapi/free-cricbuzz (local)", at:Date.now(), state:normalise(rows, PICK) };
     });
     res.json(body);
   } catch (err) {

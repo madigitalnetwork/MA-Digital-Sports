@@ -9,18 +9,18 @@
  * That is what keeps the API bill tied to how long you are on air, not to how
  * many people are watching.
  */
-const { fetchMatches, normalise } = require("../lib/cricket");
+const { fetchLiveRows, normalise } = require("../lib/cricket");
 
 module.exports = async function handler(req, res) {
-  const KEY  = process.env.CRIC_API_KEY;
+  const KEY  = process.env.CRIC_API_KEY || process.env.RAPIDAPI_KEY;
   const PICK = process.env.MATCH_ID || "";
 
   res.setHeader("Cache-Control", "public, s-maxage=8, stale-while-revalidate=25");
 
   try {
-    const rows  = await fetchMatches(KEY);
+    const rows  = await fetchLiveRows(KEY, PICK);
     const state = normalise(rows, PICK);
-    res.status(200).json({ ok:true, source:"cricketdata.org", at:Date.now(), state });
+    res.status(200).json({ ok:true, source:"rapidapi/free-cricbuzz", at:Date.now(), state });
   } catch (err) {
     res.setHeader("Cache-Control", "no-store");
     res.status(200).json({ ok:false, reason:err.message });
