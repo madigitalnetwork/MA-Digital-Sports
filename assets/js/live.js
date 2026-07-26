@@ -119,16 +119,21 @@ const clipFor = code =>
   VIDEO.outcomes[code] || VIDEO.delivery || VIDEO.idle || "";
 
 const SCENE = {
-  photo: "assets/img/stadium.jpg",
+  photo: "assets/img/ground.png",
+
+  /* This ground photo already has the bowler, batsman, keeper, umpire and
+     fielders in it. So we do NOT composite cut-out players on top (that would
+     double them up) — only the ball flies and the outcome effects play. */
+  playersInPhoto: true,
 
   /* floodlight heads in the photo — the glow sits on these */
-  towers: [{ x:11, y:5 }, { x:87, y:8 }],
+  towers: [{ x:7, y:7 }, { x:93, y:7 }],
 
   /* far end — the pair stand at the far crease, feet on the pitch just
      below the boundary boards. flip:true mirrors the cut-out so they face
      back down the pitch. */
   batsman: { x:50.0, y:66.0, h:12.0, flip:true },
-  keeper:  { x:50.0, y:64.0, h:8.5,  flip:true },
+  keeper:  { x:52.0, y:52.0, h:8.5,  flip:true },
 
   /* near end — the bowler runs away from camera, so he shrinks
      as he moves up the frame */
@@ -137,10 +142,11 @@ const SCENE = {
   bowlerAction: { x:49.0, y:80.0, h:16.0 },
   bowlerFollow: { x:49.5, y:77.0, h:15.0 },
 
-  /* ball waypoints */
-  release: { x:49.0, y:74.0 },     // leaves the bowler's hand
-  contact: { x:50.0, y:62.0 },     // meets the bat
-  ropeY:   64.0                    // the advertising boards
+  /* ball waypoints — tuned to THIS photo: the bowler runs in at the near
+     end and the striker stands at the far crease. */
+  release: { x:52.5, y:70.0 },     // leaves the near-end bowler's hand
+  contact: { x:48.5, y:53.0 },     // meets the bat at the far crease
+  ropeY:   36.0                    // the boundary boards
 };
 
 /* which bat pose each outcome plays */
@@ -155,10 +161,11 @@ const IMG = n => `assets/img/${n}.png`;
 
 function buildStadium(){
   if (videoMode()) return buildVideoStage();
+  const crowdTop = SCENE.playersInPhoto ? 14 : 22;   // where the crowd band sits in the photo
   let sparkles = "";
   for (let i = 0; i < 80; i++){
     const x = 2 + Math.random() * 96;
-    const y = 22 + Math.random() * 29;            // the crowd band in the photo
+    const y = crowdTop + Math.random() * 24;
     sparkles += `<span class="sparkle" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%;` +
                 `animation-delay:${(Math.random() * 1.6).toFixed(2)}s"></span>`;
   }
@@ -171,17 +178,21 @@ function buildStadium(){
     .map((n, k) => `<img class="ply ${cls}${k === 0 ? " on" : ""}" data-pose="${n}" src="${IMG(n)}" alt="">`)
     .join("");
 
+  /* Cut-out players are only composited when the photo is an EMPTY ground.
+     For a photo that already contains the players we skip them entirely. */
+  const figures = SCENE.playersInPhoto ? "" : `
+    <span class="figure" id="keeperFig">
+      <img class="ply on" src="${IMG("keeper")}" alt="">
+    </span>
+    <span class="figure" id="batFig">${poses(BAT_POSES, "bat")}</span>
+    <span class="figure" id="bowlFig">${poses(BOWL_POSES, "bowl")}</span>`;
+
   return `
     <img class="shot on" src="${SCENE.photo}" alt="">
     ${glows}
     <span class="haze"></span>
     ${sparkles}
-
-    <span class="figure" id="keeperFig">
-      <img class="ply on" src="${IMG("keeper")}" alt="">
-    </span>
-    <span class="figure" id="batFig">${poses(BAT_POSES, "bat")}</span>
-    <span class="figure" id="bowlFig">${poses(BOWL_POSES, "bowl")}</span>
+    ${figures}
 
     <svg class="trail" id="trail" viewBox="0 0 100 100" preserveAspectRatio="none">
       <path vector-effect="non-scaling-stroke"></path>
@@ -263,6 +274,7 @@ function setPose(figId, poseName){
 
 function seatPlayers(){
   if (videoMode()) { preloadClips(); return; }
+  if (SCENE.playersInPhoto) return;   // players are part of the photo — nothing to seat
   placeFigure(document.getElementById("batFig"),    SCENE.batsman);
   placeFigure(document.getElementById("keeperFig"), SCENE.keeper);
   placeFigure(document.getElementById("bowlFig"),   SCENE.bowlerRun);
@@ -315,23 +327,25 @@ function playDelivery(code){
   const trail = document.getElementById("trail");
   const flash = document.getElementById("flashLayer");
   const bowl  = document.getElementById("bowlFig");
-  if (!stad || !ball || !bowl) return;
+  if (!stad || !ball) return;
 
   const rect = stad.getBoundingClientRect();
   deliveryBusy = true;
 
-  /* ---------- bowler runs in ---------- */
-  const marks = [SCENE.bowlerRun, SCENE.bowlerGather, SCENE.bowlerAction, SCENE.bowlerFollow];
-  placeFigure(bowl, marks[0]);
-  setPose("bowlFig", "bowl-runup");
+  /* ---------- bowler runs in (only when we composite a cut-out bowler) ---------- */
+  if (bowl && !SCENE.playersInPhoto){
+    const marks = [SCENE.bowlerRun, SCENE.bowlerGather, SCENE.bowlerAction, SCENE.bowlerFollow];
+    placeFigure(bowl, marks[0]);
+    setPose("bowlFig", "bowl-runup");
 
-  bowl.animate(
-    marks.map(m => ({ left:m.x + "%", top:m.y + "%", height:m.h + "%" })),
-    { duration:T.follow, easing:"cubic-bezier(.35,0,.62,1)", fill:"forwards" });
+    bowl.animate(
+      marks.map(m => ({ left:m.x + "%", top:m.y + "%", height:m.h + "%" })),
+      { duration:T.follow, easing:"cubic-bezier(.35,0,.62,1)", fill:"forwards" });
 
-  setTimeout(() => setPose("bowlFig", "bowl-gather"), T.gather);
-  setTimeout(() => setPose("bowlFig", "bowl-action"), T.action);
-  setTimeout(() => setPose("bowlFig", "bowl-follow"), T.follow);
+    setTimeout(() => setPose("bowlFig", "bowl-gather"), T.gather);
+    setTimeout(() => setPose("bowlFig", "bowl-action"), T.action);
+    setTimeout(() => setPose("bowlFig", "bowl-follow"), T.follow);
+  }
 
   /* ---------- ball down the pitch ---------- */
   const R = px(SCENE.release, rect);
