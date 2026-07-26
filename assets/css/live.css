@@ -76,7 +76,7 @@ body.stream .stage-wrap{
 }
 .cap .flag{
   position:absolute;inset:-9%;width:118%;height:118%;object-fit:cover;
-  filter:saturate(1.2) brightness(.78);
+  filter:saturate(1.3) brightness(.42) blur(6px);
   animation:kenburns 20s ease-in-out infinite alternate;
 }
 @keyframes kenburns{
@@ -94,14 +94,14 @@ body.stream .stage-wrap{
 }
 @keyframes shine{0%,74%{left:-70%}100%{left:135%}}
 .cap .photo{
-  position:absolute;left:50%;bottom:0;height:94%;width:auto;max-width:none;
-  transform:translateX(-50%);
-  filter:drop-shadow(0 14px 26px rgba(0,0,0,.65));
+  position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+  width:72%;height:auto;max-height:60%;object-fit:contain;
+  filter:drop-shadow(0 12px 24px rgba(0,0,0,.6));
   animation:float 6.5s ease-in-out infinite;
 }
 @keyframes float{
-  0%,100%{transform:translateX(-50%) translateY(0)}
-  50%{transform:translateX(-50%) translateY(-8px)}
+  0%,100%{transform:translate(-50%,-50%) translateY(0)}
+  50%{transform:translate(-50%,-50%) translateY(-8px)}
 }
 .cap .role{
   position:absolute;top:10px;left:10px;z-index:2;
