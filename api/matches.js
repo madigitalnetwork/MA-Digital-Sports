@@ -6,7 +6,7 @@
 const { fetchMatches } = require("../lib/cricket");
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+  res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
 
   try {
     const data = await fetchMatches(process.env.CRIC_API_KEY || process.env.RAPIDAPI_KEY);

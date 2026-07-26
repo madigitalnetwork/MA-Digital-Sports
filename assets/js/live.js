@@ -5,7 +5,7 @@
    - Every value change animates in and out
    ========================================================= */
 
-const POLL_MS = 6000;          // auto refresh window
+const POLL_MS = 15000;         // auto refresh window (kept modest to spare the API quota)
 const API_URL = "/api/live";   // server.js serves normalised state here
 
 /* ---------------------------------------------------------
