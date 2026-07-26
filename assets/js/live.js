@@ -146,13 +146,7 @@ const SCENE = {
      end and the striker stands at the far crease. */
   release: { x:55.0, y:76.0 },     // leaves the near-end bowler's hand
   contact: { x:49.0, y:61.0 },     // meets the bat at the far crease
-  ropeY:   51.0,                   // the boundary boards
-
-  /* a scrolling LED boundary board laid over the photo's static branding.
-     imgTop/imgH are the band's top and thickness as a fraction of the PHOTO
-     (not the panel), so positionLED() can keep it locked to the boards no
-     matter how object-fit:cover crops the photo at different sizes. */
-  branding: { text:"DIGITAL SPORTS", imgTop:0.470, imgH:0.047 }
+  ropeY:   51.0                    // the boundary boards
 };
 
 /* which bat pose each outcome plays */
