@@ -15,7 +15,7 @@
  */
 
 const express = require("express");
-const { fetchMatches, normalise } = require("./lib/cricket");
+const { fetchMatches, fetchScoreboardState, normalise } = require("./lib/cricket");
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -39,8 +39,14 @@ app.use(express.static(__dirname));
 app.get("/api/live", async (req, res) => {
   try {
     const body = await cached("live", async () => {
-      const rows = await fetchMatches(KEY);
-      return { ok:true, source:"rapidapi/free-cricbuzz (local)", at:Date.now(), state:normalise(rows, PICK) };
+      const rows  = await fetchMatches(KEY);
+      const state = normalise(rows, PICK);
+      const picked = rows.find(r => r.id === state.matchId);
+      if (picked && picked.ms === "live") {
+        try { Object.assign(state, await fetchScoreboardState(KEY, state.matchId)); }
+        catch (_) { /* players are optional */ }
+      }
+      return { ok:true, source:"rapidapi/free-cricbuzz (local)", at:Date.now(), state };
     });
     res.json(body);
   } catch (err) {
