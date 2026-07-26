@@ -149,8 +149,10 @@ const SCENE = {
   ropeY:   51.0,                   // the boundary boards
 
   /* a scrolling LED boundary board laid over the photo's static branding.
-     y/h are the band's position and thickness as a % of the panel. */
-  branding: { text:"DIGITAL SPORTS", y:44.0, h:7.0 }
+     imgTop/imgH are the band's top and thickness as a fraction of the PHOTO
+     (not the panel), so positionLED() can keep it locked to the boards no
+     matter how object-fit:cover crops the photo at different sizes. */
+  branding: { text:"DIGITAL SPORTS", imgTop:0.470, imgH:0.047 }
 };
 
 /* which bat pose each outcome plays */
@@ -182,8 +184,7 @@ function buildStadium(){
   if (SCENE.branding){
     const unit = `<span><b class="ma">MA</b>&nbsp;${SCENE.branding.text}&nbsp;&nbsp;&bull;&nbsp;&nbsp;</span>`;
     const half = unit.repeat(12);
-    led = `<div class="ledboard" style="top:${SCENE.branding.y}%;height:${SCENE.branding.h}%">` +
-          `<div class="ledtrack">${half}${half}</div></div>`;
+    led = `<div class="ledboard"><div class="ledtrack">${half}${half}</div></div>`;
   }
 
   /* every pose is preloaded and stacked; only one of each is visible */
@@ -284,6 +285,26 @@ function setPose(figId, poseName){
   if (!fig) return;
   fig.querySelectorAll(".ply").forEach(img =>
     img.classList.toggle("on", img.dataset.pose === poseName));
+}
+
+/* Lock the LED boundary board onto the boards baked into the photo. The photo
+   is object-fit:cover, so its displayed rectangle — and therefore the boards —
+   move as the panel is resized; recompute the band's top/height from the
+   photo's own geometry every time. */
+function positionLED(){
+  const b = SCENE.branding; if (!b || b.imgTop == null) return;
+  const el = document.querySelector(".ledboard"); if (!el) return;
+  const st = document.getElementById("stadium"); if (!st) return;
+  const img = st.querySelector(".shot");
+  const iw = (img && img.naturalWidth)  || 1672;
+  const ih = (img && img.naturalHeight) || 941;
+  const pw = st.clientWidth, ph = st.clientHeight;
+  if (!pw || !ph) return;
+  const scale = Math.max(pw / iw, ph / ih);   // object-fit: cover
+  const dispH = ih * scale;
+  const offY  = (ph - dispH) / 2;
+  el.style.top    = ((offY + b.imgTop * dispH) / ph * 100).toFixed(2) + "%";
+  el.style.height = ((b.imgH * dispH) / ph * 100).toFixed(2) + "%";
 }
 
 function seatPlayers(){
@@ -912,6 +933,7 @@ function fitStage(){
   }
   const scale = Math.min(wrap.clientWidth / 1920, wrap.clientHeight / 1080);
   stage.style.transform = `scale(${scale})`;
+  positionLED();
 }
 
 /* index.html?stream=1 hides the site chrome and fills the window —
@@ -931,6 +953,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initStreamMode();
   stadium.insertAdjacentHTML("afterbegin", buildStadium());
   seatPlayers();
+
+  /* keep the LED boundary board locked to the photo as it loads / resizes */
+  const shot = stadium.querySelector(".shot");
+  if (shot) shot.addEventListener("load", positionLED);
+  positionLED();
 
   fitStage();
   window.addEventListener("resize", fitStage);
