@@ -662,6 +662,7 @@ function renderBalls(){
 let everLive = false;   // have we ever received real match data?
 
 async function poll(){
+  if (!livePolling) return;                 // paused -> make no API calls at all
   try{
     const res = await fetch(API_URL, { cache:"no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -679,6 +680,56 @@ async function poll(){
     // fake runs during a live broadcast.
     if (!everLive) demoTick();
   }
+}
+
+/* =========================================================
+   LIVE ON/OFF — the operator controls when the page polls the
+   API, so a paused board spends no quota at all.
+   ========================================================= */
+let livePolling = false;
+let pollTimer   = null;
+
+function updateLiveBtn(){
+  const b = document.getElementById("liveToggle");
+  if (!b) return;
+  b.classList.toggle("on",  livePolling);
+  b.classList.toggle("off", !livePolling);
+  b.textContent = livePolling ? "● LIVE — tap to pause" : "▶ GO LIVE";
+}
+
+function startLive(){
+  livePolling = true;
+  try { localStorage.setItem("maLive", "1"); } catch (_) {}
+  updateLiveBtn();
+  poll();                                        // fetch immediately
+  if (!pollTimer) pollTimer = setInterval(poll, POLL_MS);
+}
+
+function stopLive(){
+  livePolling = false;
+  try { localStorage.setItem("maLive", "0"); } catch (_) {}
+  if (pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+  updateLiveBtn();
+  const led = document.getElementById("connLed");
+  const txt = document.getElementById("connTxt");
+  if (led) led.classList.remove("on");
+  if (txt) txt.textContent = everLive
+    ? "Paused — showing last score, no API calls"
+    : "Paused — tap GO LIVE to start";
+}
+
+function toggleLive(){ livePolling ? stopLive() : startLive(); }
+
+function initLive(){
+  const p = new URLSearchParams(location.search);
+  let saved = false;
+  try { saved = localStorage.getItem("maLive") === "1"; } catch (_) {}
+  const wantLive = p.has("live") || document.body.classList.contains("stream") || saved;
+
+  const btn = document.getElementById("liveToggle");
+  if (btn) btn.addEventListener("click", toggleLive);
+
+  if (wantLive) startLive(); else stopLive();
 }
 
 /* =========================================================
@@ -966,6 +1017,5 @@ document.addEventListener("DOMContentLoaded", () => {
   demoSeed();
   initAdjust();
 
-  poll();
-  setInterval(poll, POLL_MS);
+  initLive();   // starts paused (no API calls) unless remembered / stream / ?live
 });

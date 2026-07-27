@@ -514,6 +514,17 @@ body.stream .stage-wrap{
 .dotled{width:9px;height:9px;border-radius:50%;background:var(--red);animation:blink 1.3s infinite}
 .dotled.on{background:var(--grn2)}
 
+.live-toggle{
+  margin-left:auto;cursor:pointer;
+  font-family:var(--cond);font-weight:700;letter-spacing:.12em;font-size:12px;
+  padding:4px 14px;border-radius:999px;border:1px solid var(--edge);
+  background:var(--panel);color:#fff;transition:filter .15s;
+}
+.live-toggle:hover{filter:brightness(1.15)}
+.live-toggle.on{background:linear-gradient(90deg,#0a7f3f,#12c565);border-color:#12c565;color:#fff;
+  box-shadow:0 0 14px rgba(18,197,101,.45)}
+.live-toggle.off{background:linear-gradient(90deg,#5a1024,#8a1830);border-color:#b02a45;color:#ffd7de}
+
 .adjust-btn{
   position:fixed;right:18px;bottom:18px;z-index:300;
   width:54px;height:54px;border-radius:50%;border:2px solid var(--edge);
