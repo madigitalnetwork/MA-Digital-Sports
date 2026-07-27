@@ -26,7 +26,7 @@ window.Crowd = (function () {
     for (let i = 0; i < len; i++) {
       const white = Math.random() * 2 - 1;
       last = (last + 0.02 * white) / 1.02;   // brown-ish noise = low rumble
-      d[i] = last * 3.2;
+      d[i] = last * 4.5;
     }
     return buf;
   }
@@ -53,7 +53,7 @@ window.Crowd = (function () {
       lp.type = "lowpass"; lp.frequency.value = 2000;
 
       murmurGain = ctx.createGain();
-      murmurGain.gain.value = 0.55;
+      murmurGain.gain.value = 0.8;
 
       src.connect(bp); bp.connect(lp); lp.connect(murmurGain); murmurGain.connect(master);
       src.start();
@@ -69,9 +69,10 @@ window.Crowd = (function () {
 
       // fade in
       master.gain.setValueAtTime(0.0001, ctx.currentTime);
-      master.gain.exponentialRampToValueAtTime(0.5, ctx.currentTime + 1.5);
+      master.gain.exponentialRampToValueAtTime(0.75, ctx.currentTime + 1.2);
 
       running = true;
+      if (ctx.state === "suspended") ctx.resume();   // ensure it actually plays
     } catch (_) { /* audio not available — stay silent */ }
   }
 

@@ -707,7 +707,6 @@ function startLive(){
   livePolling = true;
   try { localStorage.setItem("maLive", "1"); } catch (_) {}
   updateLiveBtn();
-  applyCrowd();
   poll();                                        // fetch immediately
   if (!pollTimer) pollTimer = setInterval(poll, POLL_MS);
 }
@@ -717,7 +716,6 @@ function stopLive(){
   try { localStorage.setItem("maLive", "0"); } catch (_) {}
   if (pollTimer){ clearInterval(pollTimer); pollTimer = null; }
   updateLiveBtn();
-  applyCrowd();
   const led = document.getElementById("connLed");
   const txt = document.getElementById("connTxt");
   if (led) led.classList.remove("on");
@@ -739,24 +737,18 @@ function updateSoundBtn(){
   b.textContent = soundOn ? "🔊 CROWD" : "🔇 CROWD";
 }
 
-/* crowd plays only while live AND enabled */
-function applyCrowd(){
-  if (!window.Crowd) return;
-  if (soundOn && livePolling) Crowd.start(); else Crowd.stop();
-}
-
 function toggleSound(){
   soundOn = !soundOn;
   try { localStorage.setItem("maSound", soundOn ? "1" : "0"); } catch (_) {}
   updateSoundBtn();
-  applyCrowd();                                  // this click is the user gesture
+  // this click is the user gesture the browser needs to allow audio
+  if (window.Crowd){ soundOn ? Crowd.start() : Crowd.stop(); }
 }
 
 function initLive(){
   const p = new URLSearchParams(location.search);
-  let saved = false, savedSound = false;
+  let saved = false;
   try { saved = localStorage.getItem("maLive") === "1"; } catch (_) {}
-  try { savedSound = localStorage.getItem("maSound") === "1"; } catch (_) {}
   const wantLive = p.has("live") || document.body.classList.contains("stream") || saved;
 
   const btn = document.getElementById("liveToggle");
@@ -764,7 +756,9 @@ function initLive(){
   const sbtn = document.getElementById("soundToggle");
   if (sbtn) sbtn.addEventListener("click", toggleSound);
 
-  soundOn = savedSound;
+  // Always start muted — the browser only allows audio after a click, so the
+  // operator taps CROWD to switch it on (that tap is the gesture).
+  soundOn = false;
   updateSoundBtn();
 
   if (wantLive) startLive(); else stopLive();
