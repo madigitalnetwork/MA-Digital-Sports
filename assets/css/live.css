@@ -39,7 +39,7 @@
   flex:1;
   display:grid;
   grid-template-columns:400px minmax(0,1fr) 400px;
-  grid-template-rows:568px 74px minmax(0,1fr);
+  grid-template-rows:452px 190px minmax(0,1fr);
   grid-template-areas:
     "capA  stage  capB"
     "banA  logo   banB"
@@ -318,29 +318,15 @@ body.stream .stage-wrap{
    LOGO STRIP — light bar, as in the reference
    ========================================================= */
 .logostrip{
-  height:74px;position:relative;overflow:hidden;
+  height:190px;position:relative;overflow:hidden;
   border:3px solid var(--edge);border-radius:12px;
-  background:linear-gradient(90deg,#E9ECF3,#FFFFFF 50%,#E9ECF3);
-  display:flex;align-items:center;justify-content:center;gap:16px;
+  background:#05060c;
+  display:flex;align-items:center;justify-content:center;
 }
-.logostrip::after{
-  content:"";position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(231,91,255,.28),transparent);
-  transform:translateX(-100%);animation:bandsweep 5.5s linear infinite;
+.logostrip-banner{
+  width:100%;height:100%;object-fit:cover;object-position:center 47%;
+  display:block;
 }
-.logostrip .mark{
-  width:52px;height:52px;border-radius:50%;flex-shrink:0;z-index:2;
-  background:conic-gradient(from 210deg,#F07A12,#E5399B,#3B6BF0,#4BE056,#F07A12);
-  display:grid;place-items:center;
-  font-weight:900;color:#0A0710;font-size:19px;letter-spacing:-.5px;
-  animation:spin-hue 9s linear infinite;
-  box-shadow:0 0 0 3px #0A0B12;
-}
-.logostrip .t{
-  z-index:2;font-family:var(--cond);font-size:27px;font-weight:700;
-  letter-spacing:.2em;color:#0C1220;
-}
-.logostrip .t i{font-style:normal;color:#D31A2B}
 
 /* =========================================================
    LEFT COLUMN row 3 — score, over, crowd sliver
@@ -605,7 +591,7 @@ body.stream .stage-wrap{
   body.stream .stage{position:absolute;width:1920px;height:1080px;padding:12px}
   body.stream .broadcast{
     grid-template-columns:400px minmax(0,1fr) 400px;
-    grid-template-rows:568px 74px minmax(0,1fr);
+    grid-template-rows:452px 190px minmax(0,1fr);
     grid-template-areas:
       "capA  stage  capB"
       "banA  logo   banB"
