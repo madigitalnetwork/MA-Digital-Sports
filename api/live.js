@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
     const picked = rows.find(r => r.id === state.matchId);
     if (picked && picked.ms === "live") {
       try {
-        Object.assign(state, await fetchScoreboardState(KEY, state.matchId));
+        Object.assign(state, await fetchScoreboardState(KEY, state.matchId, picked.team1Id, picked.team2Id));
       } catch (_) { /* players are optional */ }
     }
 
