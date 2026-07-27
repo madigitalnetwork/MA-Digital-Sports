@@ -748,8 +748,14 @@ let snap      = null;     // previous score snapshot
 let overStrip = [];       // current-over strip, maintained locally
 
 const legalCount = arr => arr.filter(c => c !== "WD" && c !== "NB").length;
+const clampRun   = r => String(Math.max(0, Math.min(6, r)));
 
-function deriveBalls(next){
+/* Compare the new poll with the last one and return a list of FRAMES — one per
+   delivery since the previous poll — each carrying the running score and the
+   over strip AS OF that ball. applyState then plays them back one at a time so
+   the number, the over strip and the stadium animation all advance together
+   instead of the score jumping ahead of the balls. */
+function deriveFrames(next){
   const now = {
     matchId: next.matchId,
     runs:    next.runs,
@@ -758,56 +764,53 @@ function deriveBalls(next){
     ball:    next.ballInOver
   };
 
-  /* first poll, or a different match — just take a baseline */
-  if (!snap || snap.matchId !== now.matchId){
-    snap = now; overStrip = [];
-    return [];
-  }
+  /* first poll, or a different match — take a baseline, no animation */
+  if (!snap || snap.matchId !== now.matchId){ snap = now; overStrip = []; return []; }
 
   const prevBalls = snap.overs * 6 + snap.ball;
   const nowBalls  = now.overs  * 6 + now.ball;
 
-  /* score went backwards — new innings, or the feed reset */
-  if (nowBalls < prevBalls || now.runs < snap.runs){
-    snap = now; overStrip = [];
-    return [];
-  }
+  /* score went backwards — new innings or a feed reset, no animation */
+  if (nowBalls < prevBalls || now.runs < snap.runs){ snap = now; overStrip = []; return []; }
 
   const ballsAdded = nowBalls - prevBalls;
   const runsAdded  = now.runs - snap.runs;
   const wktsAdded  = now.wickets - snap.wickets;
-  snap = now;
 
-  if (!ballsAdded && !runsAdded && !wktsAdded) return [];
+  if (!ballsAdded && !runsAdded && !wktsAdded){ snap = now; return []; }
 
-  const codes = [];
-
+  /* per-ball steps: code + the runs / wickets / legal-ball it carries */
+  const steps = [];
   if (ballsAdded === 0 && runsAdded > 0){
-    codes.push("WD");                                   // runs, no legal ball
+    steps.push({ code:"WD", dRuns:runsAdded, dWkt:0, legal:false });
   } else if (ballsAdded === 1){
-    codes.push(wktsAdded > 0 ? "W" : String(Math.max(0, Math.min(6, runsAdded))));
-  } else if (ballsAdded > 1){
-    /* several balls slipped between polls — spread the runs across them */
+    steps.push({ code: wktsAdded > 0 ? "W" : clampRun(runsAdded), dRuns:runsAdded, dWkt:wktsAdded, legal:true });
+  } else {
     let left = runsAdded, wk = wktsAdded;
     for (let i = 0; i < ballsAdded; i++){
-      if (wk > 0 && i === ballsAdded - 1){ codes.push("W"); wk--; continue; }
+      if (wk > 0 && i === ballsAdded - 1){ steps.push({ code:"W", dRuns:left, dWkt:1, legal:true }); left = 0; wk--; continue; }
       const take = (i === ballsAdded - 1) ? left : Math.min(left, 1);
-      codes.push(String(Math.max(0, Math.min(6, take))));
+      steps.push({ code:clampRun(take), dRuns:take, dWkt:0, legal:true });
       left -= take;
     }
   }
 
-  codes.forEach(c => {
-    overStrip.push(c);
-    if (legalCount(overStrip) >= 6) overStrip = [];
-  });
-
-  /* keep the strip in step with the real ball-in-over */
-  if (legalCount(overStrip) !== now.ball){
-    overStrip = overStrip.slice(-Math.max(0, now.ball));
+  /* fold the steps into cumulative frames, carrying score + strip forward */
+  const frames = [];
+  let runs = snap.runs, wkts = snap.wickets, balls = prevBalls, strip = overStrip.slice();
+  for (const s of steps){
+    runs += s.dRuns; wkts += s.dWkt; if (s.legal) balls += 1;
+    strip = strip.slice(); strip.push(s.code);
+    if (legalCount(strip) >= 6) strip = [];
+    frames.push({ code:s.code, runs, wickets:wkts, overs:Math.floor(balls / 6), ballInOver:balls % 6, thisOver:strip.slice() });
   }
 
-  return codes;
+  /* commit module state to the true API values */
+  snap = now;
+  overStrip = frames.length ? frames[frames.length - 1].thisOver.slice() : overStrip;
+  if (legalCount(overStrip) !== now.ball){ overStrip = overStrip.slice(-Math.max(0, now.ball)); }
+
+  return frames;
 }
 
 /* fields edited by hand are protected from later API updates */
@@ -825,23 +828,58 @@ function stripOverrides(obj){
   return out;
 }
 
-function applyState(raw){
-  const added = deriveBalls(raw);          // work out what happened since last poll
-  const next  = stripOverrides(raw);
+let stepTimers = [];               // pending per-ball playback timers
+const BALL_STEP_MS  = 1400;        // gap between consecutive balls
+const SCORE_LAG_MS  = 850;         // score ticks up as the ball reaches the bat
+const MAX_ANIM_BALLS = 8;          // beyond this, jump instead of animating
 
-  S = Object.assign({}, S, next, {
+const SCORE_KEYS = ["runs", "wickets", "overs", "ballInOver"];
+
+function applyState(raw){
+  const frames = deriveFrames(raw);
+  const next   = stripOverrides(raw);
+
+  stepTimers.forEach(clearTimeout); stepTimers = [];   // drop any earlier sequence
+
+  const stepping = frames.length > 0 && frames.length <= MAX_ANIM_BALLS;
+
+  /* Apply everything now — but if we're going to step the score in time with
+     the animation, hold the score fields at their previous values for a beat. */
+  const meta = Object.assign({}, next);
+  if (stepping) SCORE_KEYS.forEach(k => delete meta[k]);
+
+  S = Object.assign({}, S, meta, {
     teamA:   Object.assign({}, S.teamA,  next.teamA  || {}),
     teamB:   Object.assign({}, S.teamB,  next.teamB  || {}),
     bowler:  Object.assign({}, S.bowler, next.bowler || {}),
     batters: next.batters || S.batters
   });
 
-  if (!overrides.has("thisOver")) S.thisOver = overStrip.slice();
+  if (!stepping){
+    if (!overrides.has("thisOver")) S.thisOver = overStrip.slice();
+    render();
+    lastBallCount = S.thisOver.length;
+    // too many balls to animate cleanly — flash the last few quickly
+    if (frames.length){
+      frames.slice(-MAX_ANIM_BALLS).forEach((f, i) =>
+        stepTimers.push(setTimeout(() => playDelivery(String(f.code)), i * 320)));
+    }
+    return;
+  }
 
-  render();
-  lastBallCount = S.thisOver.length;
+  render();   // names / status / event now; score still on the previous ball
 
-  added.forEach((code, i) => setTimeout(() => playDelivery(String(code)), i * 900));
+  frames.forEach((f, i) => {
+    stepTimers.push(setTimeout(() => {
+      playDelivery(String(f.code));                     // bowl the ball
+      stepTimers.push(setTimeout(() => {                // ...score ticks as it lands
+        S.runs = f.runs; S.wickets = f.wickets; S.overs = f.overs; S.ballInOver = f.ballInOver;
+        if (!overrides.has("thisOver")) S.thisOver = f.thisOver.slice();
+        render();
+        lastBallCount = S.thisOver.length;
+      }, SCORE_LAG_MS));
+    }, i * BALL_STEP_MS));
+  });
 }
 
 function setConn(ok, note){
