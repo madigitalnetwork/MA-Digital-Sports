@@ -659,6 +659,8 @@ function renderBalls(){
 /* =========================================================
    5.  API POLLING
    ========================================================= */
+let everLive = false;   // have we ever received real match data?
+
 async function poll(){
   try{
     const res = await fetch(API_URL, { cache:"no-store" });
@@ -667,10 +669,15 @@ async function poll(){
     if (!data || !data.ok) throw new Error((data && data.reason) || "no data");
 
     applyState(data.state);
+    everLive = true;
     setConn(true, data.source || "API");
   } catch(err){
     setConn(false, err.message);
-    if (!liveConnected) demoTick();          // keep the page alive without a server
+    // Only simulate a match before any real data has ever arrived (offline
+    // preview). Once we have shown a real score, a failed poll (e.g. the API
+    // quota running out) must FREEZE on the last real score — never invent
+    // fake runs during a live broadcast.
+    if (!everLive) demoTick();
   }
 }
 
