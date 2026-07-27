@@ -333,6 +333,12 @@ const T = {
 let deliveryBusy = false;
 
 function playDelivery(code){
+  // crowd reacts to boundaries and wickets
+  if (window.Crowd){
+    const x = code === "6" ? 1 : code === "4" ? 0.8 : code === "W" ? 0.9 : 0;
+    if (x) Crowd.cheer(x);
+  }
+
   if (REDUCED){ showBurst(code); return; }
 
   /* video mode: play the clip, keep the burst, camera and crowd reactions */
@@ -701,6 +707,7 @@ function startLive(){
   livePolling = true;
   try { localStorage.setItem("maLive", "1"); } catch (_) {}
   updateLiveBtn();
+  applyCrowd();
   poll();                                        // fetch immediately
   if (!pollTimer) pollTimer = setInterval(poll, POLL_MS);
 }
@@ -710,6 +717,7 @@ function stopLive(){
   try { localStorage.setItem("maLive", "0"); } catch (_) {}
   if (pollTimer){ clearInterval(pollTimer); pollTimer = null; }
   updateLiveBtn();
+  applyCrowd();
   const led = document.getElementById("connLed");
   const txt = document.getElementById("connTxt");
   if (led) led.classList.remove("on");
@@ -720,14 +728,44 @@ function stopLive(){
 
 function toggleLive(){ livePolling ? stopLive() : startLive(); }
 
+/* ---- crowd sound (ambient stadium noise, cheers on boundaries/wickets) ---- */
+let soundOn = false;
+
+function updateSoundBtn(){
+  const b = document.getElementById("soundToggle");
+  if (!b) return;
+  b.classList.toggle("on",  soundOn);
+  b.classList.toggle("off", !soundOn);
+  b.textContent = soundOn ? "🔊 CROWD" : "🔇 CROWD";
+}
+
+/* crowd plays only while live AND enabled */
+function applyCrowd(){
+  if (!window.Crowd) return;
+  if (soundOn && livePolling) Crowd.start(); else Crowd.stop();
+}
+
+function toggleSound(){
+  soundOn = !soundOn;
+  try { localStorage.setItem("maSound", soundOn ? "1" : "0"); } catch (_) {}
+  updateSoundBtn();
+  applyCrowd();                                  // this click is the user gesture
+}
+
 function initLive(){
   const p = new URLSearchParams(location.search);
-  let saved = false;
+  let saved = false, savedSound = false;
   try { saved = localStorage.getItem("maLive") === "1"; } catch (_) {}
+  try { savedSound = localStorage.getItem("maSound") === "1"; } catch (_) {}
   const wantLive = p.has("live") || document.body.classList.contains("stream") || saved;
 
   const btn = document.getElementById("liveToggle");
   if (btn) btn.addEventListener("click", toggleLive);
+  const sbtn = document.getElementById("soundToggle");
+  if (sbtn) sbtn.addEventListener("click", toggleSound);
+
+  soundOn = savedSound;
+  updateSoundBtn();
 
   if (wantLive) startLive(); else stopLive();
 }
