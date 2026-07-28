@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 const KEY  = process.env.CRIC_API_KEY || process.env.RAPIDAPI_KEY || "";
 const PICK = process.env.MATCH_ID || "";
 
-const CACHE_MS = 25000;
+const CACHE_MS = 8000;
 const cache = new Map();          // route -> { at, body }
 
 async function cached(route, build){

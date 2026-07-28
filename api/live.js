@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
   const KEY  = process.env.CRIC_API_KEY || process.env.RAPIDAPI_KEY;
   const PICK = process.env.MATCH_ID || "";
 
-  res.setHeader("Cache-Control", "public, s-maxage=40, stale-while-revalidate=90");
+  res.setHeader("Cache-Control", "public, s-maxage=8, stale-while-revalidate=20");
 
   try {
     const rows  = await fetchLiveRows(KEY, PICK);

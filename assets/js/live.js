@@ -5,7 +5,7 @@
    - Every value change animates in and out
    ========================================================= */
 
-const POLL_MS = 15000;         // auto refresh window (kept modest to spare the API quota)
+const POLL_MS = 7000;          // auto refresh window
 const API_URL = "/api/live";   // server.js serves normalised state here
 
 /* ---------------------------------------------------------
@@ -861,8 +861,8 @@ function stripOverrides(obj){
 }
 
 let stepTimers = [];               // pending per-ball playback timers
-const BALL_STEP_MS  = 1400;        // gap between consecutive balls
-const SCORE_LAG_MS  = 850;         // score ticks up as the ball reaches the bat
+const BALL_STEP_MS  = 700;         // gap between consecutive balls
+const SCORE_LAG_MS  = 350;         // score ticks up as the ball reaches the bat
 const MAX_ANIM_BALLS = 8;          // beyond this, jump instead of animating
 
 const SCORE_KEYS = ["runs", "wickets", "overs", "ballInOver"];
