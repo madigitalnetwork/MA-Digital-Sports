@@ -1,13 +1,9 @@
 /**
  * Vercel serverless function — GET /api/live
  *
- * Stateless on purpose. Serverless functions are short-lived and do not share
- * memory, so nothing is cached in a variable here. Instead the CDN caches the
- * response: with s-maxage=8, every visitor inside the same 8-second window is
- * served the same cached response and the upstream API is hit once.
- *
- * That is what keeps the API bill tied to how long you are on air, not to how
- * many people are watching.
+ * No caching here on purpose: the operator wants every ball to show up as
+ * soon as the upstream feed has it, so each request goes straight to the
+ * upstream API rather than serving a shared, slightly-stale CDN copy.
  */
 const { fetchLiveRows, fetchScoreboardState, normalise } = require("../lib/cricket");
 
@@ -15,7 +11,7 @@ module.exports = async function handler(req, res) {
   const KEY  = process.env.CRIC_API_KEY || process.env.RAPIDAPI_KEY;
   const PICK = process.env.MATCH_ID || "";
 
-  res.setHeader("Cache-Control", "public, s-maxage=8, stale-while-revalidate=20");
+  res.setHeader("Cache-Control", "no-store");
 
   try {
     const rows  = await fetchLiveRows(KEY, PICK);
