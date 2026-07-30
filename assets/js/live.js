@@ -569,6 +569,12 @@ function render(){
   setImg("flagB", S.teamB.flag,  BLANK_FLAG);
   setImg("capA",  S.teamA.photo, BLANK_PLAYER);
   setImg("capB",  S.teamB.photo, BLANK_PLAYER);
+  // A real captain headshot gets cropped into the circular chip (hides the
+  // jersey colour clash); the team-crest fallback stays in its plain frame.
+  const capAMask = document.getElementById("capAMask");
+  const capBMask = document.getElementById("capBMask");
+  if (capAMask) capAMask.classList.toggle("headshot", !!S.teamA.isCaptainPhoto);
+  if (capBMask) capBMask.classList.toggle("headshot", !!S.teamB.isCaptainPhoto);
 
   /* score */
   if (anim("scoreRuns", `${S.runs}-${S.wickets}`)) flash("scoreRuns");

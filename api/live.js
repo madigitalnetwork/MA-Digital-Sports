@@ -36,8 +36,11 @@ module.exports = async function handler(req, res) {
           const team1IsA = picked.t1 && state.teamA && picked.t1.indexOf(`[${state.teamA.short}]`) !== -1;
           const aPhoto = team1IsA ? state.captainPhotos.team1 : state.captainPhotos.team2;
           const bPhoto = team1IsA ? state.captainPhotos.team2 : state.captainPhotos.team1;
-          if (aPhoto) state.teamA.photo = aPhoto;
-          if (bPhoto) state.teamB.photo = bPhoto;
+          // isCaptainPhoto tells the client this is a real headshot (crop it
+          // into the circular chip) rather than the team crest fallback
+          // (which must stay uncropped, or its badge/emblem gets clipped).
+          if (aPhoto) { state.teamA.photo = aPhoto; state.teamA.isCaptainPhoto = true; }
+          if (bPhoto) { state.teamB.photo = bPhoto; state.teamB.isCaptainPhoto = true; }
           delete state.captainPhotos;
         }
       } catch (_) { /* players are optional */ }

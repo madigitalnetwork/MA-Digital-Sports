@@ -51,8 +51,8 @@ app.get("/api/live", async (req, res) => {
             const team1IsA = picked.t1 && state.teamA && picked.t1.indexOf(`[${state.teamA.short}]`) !== -1;
             const aPhoto = team1IsA ? state.captainPhotos.team1 : state.captainPhotos.team2;
             const bPhoto = team1IsA ? state.captainPhotos.team2 : state.captainPhotos.team1;
-            if (aPhoto) state.teamA.photo = aPhoto;
-            if (bPhoto) state.teamB.photo = bPhoto;
+            if (aPhoto) { state.teamA.photo = aPhoto; state.teamA.isCaptainPhoto = true; }
+            if (bPhoto) { state.teamB.photo = bPhoto; state.teamB.isCaptainPhoto = true; }
             delete state.captainPhotos;
           }
         } catch (_) { /* players are optional */ }
@@ -64,6 +64,8 @@ app.get("/api/live", async (req, res) => {
     res.json({ ok:false, reason:err.message });
   }
 });
+
+app.get("/api/img", require("./api/img.js"));
 
 app.get("/api/matches", async (req, res) => {
   try {
