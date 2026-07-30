@@ -521,6 +521,14 @@ body.stream .stage-wrap{
 .sound-toggle.on{background:linear-gradient(90deg,#0a4f7f,#1288c5);border-color:#1288c5;color:#fff}
 .sound-toggle.off{background:var(--panel);color:var(--mut)}
 
+.vol-toggle{
+  cursor:pointer;
+  font-family:var(--cond);font-weight:700;letter-spacing:.1em;font-size:12px;
+  padding:4px 12px;border-radius:999px;border:1px solid var(--edge);
+  background:linear-gradient(90deg,#4a3a00,#8a6a00);color:#ffe28a;transition:filter .15s;
+}
+.vol-toggle:hover{filter:brightness(1.15)}
+
 .adjust-btn{
   position:fixed;right:18px;bottom:18px;z-index:300;
   width:54px;height:54px;border-radius:50%;border:2px solid var(--edge);

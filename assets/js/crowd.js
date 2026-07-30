@@ -6,17 +6,21 @@
    a wicket. Everything is synthesised, so it works offline and
    adds nothing to page weight.
 
-   window.Crowd.start()  – begin the ambience (must be called from
-                           a user gesture, e.g. the GO LIVE click,
-                           or the browser will block the audio)
-   window.Crowd.stop()   – fade out and stop
-   window.Crowd.cheer(x) – swell + cheer, intensity x in 0..1
-   window.Crowd.on       – whether it is currently playing
+   window.Crowd.start()       – begin the ambience (must be called from
+                                a user gesture, e.g. a button click,
+                                or the browser will block the audio)
+   window.Crowd.stop()        – fade out and stop
+   window.Crowd.cheer(x)      – swell + cheer, intensity x in 0..1
+   window.Crowd.setLevel(v)   – set overall volume, 0..1 (takes effect
+                                immediately even while already playing)
+   window.Crowd.on            – whether it is currently playing
+   window.Crowd.level         – current volume level, 0..1
    ========================================================= */
 window.Crowd = (function () {
   let ctx = null, master = null, murmurGain = null, noiseBuf = null;
   const live = [];           // long-lived nodes to stop on disable
   let running = false;
+  let level = 0.75;          // overall volume, 0..1 — set via setLevel()
 
   function makeNoise(seconds) {
     const len = Math.floor(ctx.sampleRate * seconds);
@@ -67,9 +71,9 @@ window.Crowd = (function () {
 
       live.push(src, lfo);
 
-      // fade in
+      // fade in to the current volume level
       master.gain.setValueAtTime(0.0001, ctx.currentTime);
-      master.gain.exponentialRampToValueAtTime(0.75, ctx.currentTime + 1.2);
+      master.gain.exponentialRampToValueAtTime(Math.max(0.001, level), ctx.currentTime + 1.2);
 
       running = true;
       if (ctx.state === "suspended") ctx.resume();   // ensure it actually plays
@@ -88,21 +92,35 @@ window.Crowd = (function () {
     running = false;
   }
 
+  /* Change the overall volume, 0..1. Works whether playing or not — if
+     already running it ramps smoothly to the new level right away; if not
+     running yet, the new level is simply what the next start() fades in to. */
+  function setLevel(v) {
+    level = Math.max(0.05, Math.min(1, v || 0));
+    if (!running || !ctx || !master) return;
+    const t = ctx.currentTime;
+    try {
+      master.gain.cancelScheduledValues(t);
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(level, t + 0.3);
+    } catch (_) {}
+  }
+
   function cheer(intensity) {
     if (!running || !ctx) return;
     const x = Math.max(0, Math.min(1, intensity || 0));
     if (x <= 0) return;
     const t = ctx.currentTime;
 
-    // swell the whole crowd up, then settle back
+    // swell up from the current level, then settle back to it
     try {
       master.gain.cancelScheduledValues(t);
       master.gain.setValueAtTime(master.gain.value, t);
-      master.gain.linearRampToValueAtTime(Math.min(1.0, 0.5 + 0.5 * x), t + 0.18);
-      master.gain.linearRampToValueAtTime(0.5, t + 2.6);
+      master.gain.linearRampToValueAtTime(Math.min(1.0, level * (1 + 0.65 * x)), t + 0.18);
+      master.gain.linearRampToValueAtTime(level, t + 2.6);
     } catch (_) {}
 
-    // a brighter cheer layer on top
+    // a brighter cheer layer on top, scaled to the current volume level
     try {
       const src = ctx.createBufferSource();
       src.buffer = noiseBuf; src.loop = true;
@@ -115,14 +133,15 @@ window.Crowd = (function () {
       src.connect(hp); hp.connect(pk); pk.connect(g); g.connect(master);
       src.start(t);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(0.55 * x, t + 0.2);
+      g.gain.linearRampToValueAtTime(0.55 * x * level, t + 0.2);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
       src.stop(t + 2.5);
     } catch (_) {}
   }
 
   return {
-    start, stop, cheer,
-    get on() { return running; }
+    start, stop, cheer, setLevel,
+    get on() { return running; },
+    get level() { return level; }
   };
 })();

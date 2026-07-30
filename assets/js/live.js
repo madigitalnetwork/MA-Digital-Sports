@@ -752,6 +752,27 @@ function toggleSound(){
   if (window.Crowd){ soundOn ? Crowd.start() : Crowd.stop(); }
 }
 
+/* ---- crowd volume — cycles LOW / MED / HIGH on each click ---- */
+const VOL_LEVELS = [
+  { mult:0.35, label:"LOW"  },
+  { mult:0.75, label:"MED"  },
+  { mult:1.0,  label:"HIGH" }
+];
+let volIdx = 1;   // MED by default, matches the volume Crowd used before this control existed
+
+function updateVolBtn(){
+  const b = document.getElementById("volToggle");
+  if (!b) return;
+  b.textContent = "🔉 " + VOL_LEVELS[volIdx].label;
+}
+
+function cycleVolume(){
+  volIdx = (volIdx + 1) % VOL_LEVELS.length;
+  try { localStorage.setItem("maCrowdVolIdx", String(volIdx)); } catch (_) {}
+  updateVolBtn();
+  if (window.Crowd) Crowd.setLevel(VOL_LEVELS[volIdx].mult);
+}
+
 function initLive(){
   const p = new URLSearchParams(location.search);
   let saved = false;
@@ -762,11 +783,22 @@ function initLive(){
   if (btn) btn.addEventListener("click", toggleLive);
   const sbtn = document.getElementById("soundToggle");
   if (sbtn) sbtn.addEventListener("click", toggleSound);
+  const vbtn = document.getElementById("volToggle");
+  if (vbtn) vbtn.addEventListener("click", cycleVolume);
 
   // Always start muted — the browser only allows audio after a click, so the
   // operator taps CROWD to switch it on (that tap is the gesture).
   soundOn = false;
   updateSoundBtn();
+
+  let savedVolIdx = 1;
+  try {
+    const v = parseInt(localStorage.getItem("maCrowdVolIdx"), 10);
+    if (!isNaN(v) && v >= 0 && v < VOL_LEVELS.length) savedVolIdx = v;
+  } catch (_) {}
+  volIdx = savedVolIdx;
+  updateVolBtn();
+  if (window.Crowd) Crowd.setLevel(VOL_LEVELS[volIdx].mult);
 
   if (wantLive) startLive(); else stopLive();
 }
