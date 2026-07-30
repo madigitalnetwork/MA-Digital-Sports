@@ -45,8 +45,17 @@ app.get("/api/live", async (req, res) => {
       const state = normalise(rows, pick);
       const picked = rows.find(r => r.id === state.matchId);
       if (picked && picked.ms === "live") {
-        try { Object.assign(state, await fetchScoreboardState(KEY, state.matchId, picked.team1Id, picked.team2Id)); }
-        catch (_) { /* players are optional */ }
+        try {
+          Object.assign(state, await fetchScoreboardState(KEY, state.matchId, picked.team1Id, picked.team2Id));
+          if (state.captainPhotos) {
+            const team1IsA = picked.t1 && state.teamA && picked.t1.indexOf(`[${state.teamA.short}]`) !== -1;
+            const aPhoto = team1IsA ? state.captainPhotos.team1 : state.captainPhotos.team2;
+            const bPhoto = team1IsA ? state.captainPhotos.team2 : state.captainPhotos.team1;
+            if (aPhoto) state.teamA.photo = aPhoto;
+            if (bPhoto) state.teamB.photo = bPhoto;
+            delete state.captainPhotos;
+          }
+        } catch (_) { /* players are optional */ }
       }
       return { ok:true, source:"rapidapi/free-cricbuzz (local)", at:Date.now(), state };
     });

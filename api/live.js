@@ -27,6 +27,19 @@ module.exports = async function handler(req, res) {
     if (picked && picked.ms === "live") {
       try {
         Object.assign(state, await fetchScoreboardState(KEY, state.matchId, picked.team1Id, picked.team2Id));
+
+        // Show each side's actual captain in the captain box instead of the
+        // team crest, when the squad has one. picked.team1Id/team2Id don't
+        // inherently know which of teamA/teamB (batting/bowling) they are —
+        // work that out from which side's short code appears in picked.t1.
+        if (state.captainPhotos) {
+          const team1IsA = picked.t1 && state.teamA && picked.t1.indexOf(`[${state.teamA.short}]`) !== -1;
+          const aPhoto = team1IsA ? state.captainPhotos.team1 : state.captainPhotos.team2;
+          const bPhoto = team1IsA ? state.captainPhotos.team2 : state.captainPhotos.team1;
+          if (aPhoto) state.teamA.photo = aPhoto;
+          if (bPhoto) state.teamB.photo = bPhoto;
+          delete state.captainPhotos;
+        }
       } catch (_) { /* players are optional */ }
     }
 
