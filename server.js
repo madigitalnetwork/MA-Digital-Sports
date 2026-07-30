@@ -37,13 +37,15 @@ async function cached(route, build){
 app.use(express.static(__dirname));
 
 app.get("/api/live", async (req, res) => {
+  // ?matchId= overrides MATCH_ID, same as production — see api/live.js
+  const pick = req.query.matchId || PICK;
   try {
-    const body = await cached("live", async () => {
+    const body = await cached("live:" + pick, async () => {
       const rows  = await fetchMatches(KEY);
-      const state = normalise(rows, PICK);
+      const state = normalise(rows, pick);
       const picked = rows.find(r => r.id === state.matchId);
       if (picked && picked.ms === "live") {
-        try { Object.assign(state, await fetchScoreboardState(KEY, state.matchId)); }
+        try { Object.assign(state, await fetchScoreboardState(KEY, state.matchId, picked.team1Id, picked.team2Id)); }
         catch (_) { /* players are optional */ }
       }
       return { ok:true, source:"rapidapi/free-cricbuzz (local)", at:Date.now(), state };

@@ -9,7 +9,10 @@ const { fetchLiveRows, fetchScoreboardState, normalise } = require("../lib/crick
 
 module.exports = async function handler(req, res) {
   const KEY  = process.env.CRIC_API_KEY || process.env.RAPIDAPI_KEY;
-  const PICK = process.env.MATCH_ID || "";
+  // ?matchId= in the URL overrides the MATCH_ID env var, so the operator can
+  // switch to whichever match is live right now just by editing the page URL
+  // (or the OBS Browser Source URL) — no env var edit or redeploy needed.
+  const PICK = (req.query && req.query.matchId) || process.env.MATCH_ID || "";
 
   res.setHeader("Cache-Control", "no-store");
 

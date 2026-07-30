@@ -6,7 +6,14 @@
    ========================================================= */
 
 const POLL_MS = 4000;          // auto refresh window
-const API_URL = "/api/live";   // server.js serves normalised state here
+
+/* ?matchId=XXXXX in the page URL pins a specific match — same as the
+   MATCH_ID env var, but changeable on the fly, with no redeploy: just edit
+   this page's URL (or the OBS Browser Source URL) to the match you want. */
+const PINNED_MATCH = new URLSearchParams(location.search).get("matchId") || "";
+const API_URL = PINNED_MATCH
+  ? `/api/live?matchId=${encodeURIComponent(PINNED_MATCH)}`
+  : "/api/live";                // server.js serves normalised state here
 
 /* ---------------------------------------------------------
    Placeholder images used until real ones are set
