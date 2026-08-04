@@ -120,7 +120,7 @@ body.stream .stage-wrap{
   box-shadow:0 12px 24px rgba(0,0,0,.6);
 }
 .cap .photo-mask.headshot .photo{
-  height:165%;object-fit:cover;object-position:top center;filter:none;
+  height:126%;object-fit:cover;object-position:top center;filter:none;
 }
 @keyframes float{
   0%,100%{transform:translate(-50%,-50%) translateY(0)}
