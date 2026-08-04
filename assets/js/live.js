@@ -619,7 +619,11 @@ function render(){
 
   /* score */
   if (anim("scoreRuns", `${S.runs}-${S.wickets}`)) flash("scoreRuns");
-  anim("scoreOvers", `${S.overs}.${S.ballInOver}`);
+  // A ball count of 6+ means that over is actually complete — never display
+  // an invalid ".6" over notation, whatever fed S this value.
+  const dispOvers = S.ballInOver >= 6 ? S.overs + 1 : S.overs;
+  const dispBall  = S.ballInOver >= 6 ? 0 : S.ballInOver;
+  anim("scoreOvers", `${dispOvers}.${dispBall}`);
   document.getElementById("scoreCRR").textContent = "CRR " + crr.toFixed(2);
   document.getElementById("scoreOf").textContent  = "OF " + S.totalOvers + " OV";
   document.getElementById("lastOut").textContent  = S.lastMan || "—";
