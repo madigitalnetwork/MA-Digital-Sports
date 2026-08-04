@@ -883,19 +883,25 @@ function deriveFrames(next){
   };
 
   /* first poll, or a different match — take a baseline, no animation */
-  if (!snap || snap.matchId !== now.matchId){ snap = now; overStrip = []; return []; }
+  if (!snap || snap.matchId !== now.matchId){ snap = now; overStrip = []; return { frames:[], regressed:false }; }
 
   const prevBalls = snap.overs * 6 + snap.ball;
   const nowBalls  = now.overs  * 6 + now.ball;
 
-  /* score went backwards — new innings or a feed reset, no animation */
-  if (nowBalls < prevBalls || now.runs < snap.runs){ snap = now; overStrip = []; return []; }
+  /* The server blends two upstream feeds (the match-list score string, then
+     the more detailed scoreboard/leanback feed on top) that don't always
+     update in lockstep — one poll can briefly read a ball or two staler
+     than the poll before it, even though nothing actually reversed on the
+     ground. Don't accept that as truth: keep snap at the last good value
+     and tell applyState to leave the displayed score alone this round —
+     it'll pick back up cleanly once the feeds agree again next poll. */
+  if (nowBalls < prevBalls || now.runs < snap.runs){ return { frames:[], regressed:true }; }
 
   const ballsAdded = nowBalls - prevBalls;
   const runsAdded  = now.runs - snap.runs;
   const wktsAdded  = now.wickets - snap.wickets;
 
-  if (!ballsAdded && !runsAdded && !wktsAdded){ snap = now; return []; }
+  if (!ballsAdded && !runsAdded && !wktsAdded){ snap = now; return { frames:[], regressed:false }; }
 
   /* per-ball steps: code + the runs / wickets / legal-ball it carries */
   const steps = [];
@@ -928,7 +934,7 @@ function deriveFrames(next){
   overStrip = frames.length ? frames[frames.length - 1].thisOver.slice() : overStrip;
   if (legalCount(overStrip) !== now.ball){ overStrip = overStrip.slice(-Math.max(0, now.ball)); }
 
-  return frames;
+  return { frames, regressed:false };
 }
 
 /* fields edited by hand are protected from later API updates */
@@ -954,7 +960,7 @@ const MAX_ANIM_BALLS = 8;          // beyond this, jump instead of animating
 const SCORE_KEYS = ["runs", "wickets", "overs", "ballInOver"];
 
 function applyState(raw){
-  const frames = deriveFrames(raw);
+  const { frames, regressed } = deriveFrames(raw);
   const next   = stripOverrides(raw);
 
   stepTimers.forEach(clearTimeout); stepTimers = [];   // drop any earlier sequence
@@ -962,16 +968,25 @@ function applyState(raw){
   const stepping = frames.length > 0 && frames.length <= MAX_ANIM_BALLS;
 
   /* Apply everything now — but if we're going to step the score in time with
-     the animation, hold the score fields at their previous values for a beat. */
+     the animation, hold the score fields at their previous values for a beat.
+     A regressed poll (see deriveFrames) is worse than stale — its score and
+     player figures actively disagree with what's already on screen — so
+     none of that goes up; only safe, low-churn fields like team names and
+     event text refresh. */
   const meta = Object.assign({}, next);
-  if (stepping) SCORE_KEYS.forEach(k => delete meta[k]);
+  if (stepping || regressed) SCORE_KEYS.forEach(k => delete meta[k]);
 
   S = Object.assign({}, S, meta, {
     teamA:   Object.assign({}, S.teamA,  next.teamA  || {}),
     teamB:   Object.assign({}, S.teamB,  next.teamB  || {}),
-    bowler:  Object.assign({}, S.bowler, next.bowler || {}),
-    batters: next.batters || S.batters
+    bowler:  regressed ? S.bowler  : Object.assign({}, S.bowler, next.bowler || {}),
+    batters: regressed ? S.batters : (next.batters || S.batters)
   });
+
+  if (regressed){
+    render();
+    return;
+  }
 
   if (!stepping){
     if (!overrides.has("thisOver")) S.thisOver = overStrip.slice();
