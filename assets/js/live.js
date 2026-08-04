@@ -841,7 +841,9 @@ function renderScorecard(card){
   const exEl     = document.getElementById("scExtras");
   if (!rowsEl) return;
 
-  teamEl.textContent = (card.teamName || S.teamB.name || "BOWLING").toUpperCase();
+  // card.teamName is the API's per-innings BATTING side; S.teamB is our own
+  // already-correct bowling side, so prefer that for this bowling-figures header.
+  teamEl.textContent = (S.teamB.name || card.teamName || "BOWLING").toUpperCase();
 
   if (!card.bowlers || !card.bowlers.length){
     rowsEl.innerHTML = `<div class="sc-empty">No scorecard data yet</div>`;
