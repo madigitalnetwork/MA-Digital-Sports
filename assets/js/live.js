@@ -993,8 +993,8 @@ const DEMO_BALLS = ["1","0","4","1","6","0","W","2","1","4","0","1"];
 let demoI = 0;
 
 function demoSeed(){
-  S.teamA = { name:"Pakistan", short:"PAK", flag:"", captain:"Captain", photo:"" };
-  S.teamB = { name:"Namibia",  short:"NAM", flag:"", captain:"Captain", photo:"" };
+  S.teamA = { name:"Pakistan", short:"PAK", flag:"", captain:"Captain", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS };
+  S.teamB = { name:"Namibia",  short:"NAM", flag:"", captain:"Captain", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS };
   S.toss = "NAM opt to bowl";
   S.statusText = "Pakistan batting";
   S.totalOvers = 20;
@@ -1118,6 +1118,10 @@ function initAdjust(){
     let node = S;
     while (path.length > 1) node = node[path.shift()];
     node[path[0]] = val;
+    if (e.target.type === "range"){
+      const out = e.target.closest("label") && e.target.closest("label").querySelector(".advalue");
+      if (out) out.textContent = val;
+    }
     render();
   });
 
@@ -1141,6 +1145,10 @@ function fillAdjust(){
     let v = S;
     el.dataset.field.split(".").forEach(p => { v = v == null ? "" : v[p]; });
     el.value = v == null ? "" : v;
+    if (el.type === "range"){
+      const out = el.closest("label") && el.closest("label").querySelector(".advalue");
+      if (out) out.textContent = el.value;
+    }
   });
 }
 
