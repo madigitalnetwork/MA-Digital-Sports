@@ -1223,6 +1223,22 @@ document.addEventListener("DOMContentLoaded", () => {
   fitStage();
   window.addEventListener("resize", fitStage);
 
+  // window "resize" only fires for the browser window itself — an OBS
+  // Browser Source (or any other embedded/iframed view) can change size
+  // without ever dispatching that event, leaving the stage scaled for its
+  // old box and clipped by stage-wrap's overflow:hidden. Watch the actual
+  // box the stage sits in instead, so it re-fits whenever ITS size changes
+  // for any reason.
+  if (window.ResizeObserver){
+    const wrap = document.getElementById("stage") && document.getElementById("stage").parentElement;
+    if (wrap) new ResizeObserver(fitStage).observe(wrap);
+  }
+
+  // web fonts swap in after the page's own layout pass; if a card's text
+  // was measured against the fallback font first, re-fit once the real
+  // font is active so nothing is left sized for the wrong metrics.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitStage);
+
   demoSeed();
   loadAdjustOverrides();   // put back anything the operator saved on an earlier visit
   render();
