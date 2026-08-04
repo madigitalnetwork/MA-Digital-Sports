@@ -1066,6 +1066,40 @@ function addBallLocal(code){
 /* =========================================================
    7.  ADJUST PANEL
    ========================================================= */
+const ADJUST_SAVE_KEY = "maAdjustOverrides";
+
+/* every field the operator has hand-edited, keyed by its data-field path,
+   so a reload can put the board back exactly how it was left */
+function saveAdjustOverrides(){
+  const data = {};
+  overrides.forEach(field => {
+    const path = field.split(".");
+    let node = S, ok = true;
+    while (path.length > 1){
+      node = node[path.shift()];
+      if (node == null){ ok = false; break; }
+    }
+    if (ok) data[field] = node[path[0]];
+  });
+  try { localStorage.setItem(ADJUST_SAVE_KEY, JSON.stringify(data)); } catch (_) {}
+}
+
+/* restore hand-edited fields saved on an earlier visit — called once on
+   boot, before the first render, so they are in place from the start
+   rather than flashing the API/demo value first. */
+function loadAdjustOverrides(){
+  let data;
+  try { data = JSON.parse(localStorage.getItem(ADJUST_SAVE_KEY) || "null"); } catch (_) { data = null; }
+  if (!data) return;
+  Object.keys(data).forEach(field => {
+    overrides.add(field);
+    const path = field.split(".");
+    let node = S;
+    while (path.length > 1) node = node[path.shift()];
+    node[path[0]] = data[field];
+  });
+}
+
 function initAdjust(){
   const panel = document.getElementById("adjust");
   const open  = document.getElementById("adjustBtn");
@@ -1079,7 +1113,7 @@ function initAdjust(){
     const f = e.target.dataset.field;
     if (!f) return;
     overrides.add(f);
-    const val  = e.target.type === "number" ? (+e.target.value || 0) : e.target.value;
+    const val  = (e.target.type === "number" || e.target.type === "range") ? (+e.target.value || 0) : e.target.value;
     const path = f.split(".");
     let node = S;
     while (path.length > 1) node = node[path.shift()];
@@ -1089,6 +1123,17 @@ function initAdjust(){
 
   document.querySelectorAll("[data-ball]").forEach(btn =>
     btn.addEventListener("click", () => addBallLocal(btn.dataset.ball)));
+
+  const saveBtn  = document.getElementById("adjustSave");
+  const saveNote = document.getElementById("adjustSaveNote");
+  if (saveBtn) saveBtn.addEventListener("click", () => {
+    saveAdjustOverrides();
+    if (saveNote){
+      saveNote.textContent = "Saved ✓";
+      saveNote.classList.remove("go"); void saveNote.offsetWidth; saveNote.classList.add("go");
+      setTimeout(() => saveNote.classList.remove("go"), 1800);
+    }
+  });
 }
 
 function fillAdjust(){
@@ -1147,6 +1192,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", fitStage);
 
   demoSeed();
+  loadAdjustOverrides();   // put back anything the operator saved on an earlier visit
+  render();
   initAdjust();
 
   initLive();   // starts paused (no API calls) unless remembered / stream / ?live

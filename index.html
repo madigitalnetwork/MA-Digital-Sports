@@ -161,7 +161,12 @@
 <aside class="adjust" id="adjust" aria-label="Scoreboard adjust">
   <button class="close" id="adjustClose" aria-label="Close">&times;</button>
   <h3>Adjust</h3>
-  <p class="hint">Data arrives from the API automatically. Correct anything here and it applies straight away — any field you edit is left alone by later API updates.</p>
+  <p class="hint">Data arrives from the API automatically. Correct anything here and it applies straight away — any field you edit is left alone by later API updates. Tap Save settings to keep it after closing or reloading the page.</p>
+
+  <div class="adjust-save-row">
+    <button class="btn primary" id="adjustSave" type="button">💾 Save settings</button>
+    <span class="save-note" id="adjustSaveNote"></span>
+  </div>
 
   <fieldset>
     <legend>Batting team</legend>
