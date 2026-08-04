@@ -212,6 +212,42 @@ body.stream .stage-wrap{
   border:3px solid var(--edge);border-radius:14px;overflow:hidden;background:#0A1A2E;
 }
 
+/* Full scorecard — swaps in for the stadium view when the operator taps
+   SCORECARD, in the exact same flex slot so nothing else in the layout
+   moves. */
+.scorecard{
+  display:none;
+  flex:1;min-height:250px;flex-direction:column;gap:10px;
+  border:3px solid var(--edge);border-radius:14px;overflow:hidden;
+  background:linear-gradient(160deg,#1A0B2E,#0A1A2E 60%);
+  padding:14px 18px;color:#fff;
+}
+.a-stage.show-scorecard .stadium{display:none}
+.a-stage.show-scorecard .scorecard{display:flex}
+
+.sc-head{display:flex;align-items:baseline;justify-content:space-between;flex:0 0 auto}
+.sc-head b{font-family:var(--cond);font-size:20px;font-weight:800;letter-spacing:.1em;color:var(--gold)}
+.sc-head span{font-size:12px;color:var(--mut)}
+
+.sc-table{flex:1;overflow-y:auto;min-height:0}
+.sc-row{display:grid;grid-template-columns:1fr repeat(5,52px);gap:6px;padding:6px 4px;font-size:14px;align-items:center}
+.sc-row + .sc-row{border-top:1px solid rgba(255,255,255,.08)}
+.sc-head-row{font-family:var(--cond);font-size:11px;letter-spacing:.12em;color:var(--mut);border-bottom:2px solid var(--edge);padding-bottom:8px}
+.sc-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.sc-num{text-align:center;font-weight:800;color:var(--gold)}
+.sc-empty{color:var(--mut);font-size:13px;padding:14px 4px;text-align:center}
+
+.sc-fow{border-top:2px solid var(--edge);padding-top:8px;flex:0 0 auto}
+.sc-fow-label{font-family:var(--cond);font-size:11px;letter-spacing:.12em;color:var(--mut);margin-bottom:5px}
+.sc-fow-list{display:flex;flex-wrap:wrap;gap:5px 14px;font-size:13px}
+.sc-fow-list b{color:var(--gold)}
+
+.sc-extras{
+  display:flex;justify-content:space-between;font-size:12px;letter-spacing:.1em;
+  color:var(--mut);border-top:1px solid rgba(255,255,255,.08);padding-top:7px;flex:0 0 auto;
+}
+.sc-extras b{color:#fff;font-size:15px;letter-spacing:normal}
+
 /* ---- the photo, drifting slowly so the frame never sits still ---- */
 .stadium .shot{
   position:absolute;inset:-4%;width:108%;height:108%;
@@ -579,6 +615,17 @@ body.stream .stage-wrap{
   background:linear-gradient(90deg,#4a3a00,#8a6a00);color:#ffe28a;transition:filter .15s;
 }
 .vol-toggle:hover{filter:brightness(1.15)}
+
+.score-toggle{
+  cursor:pointer;
+  font-family:var(--cond);font-weight:700;letter-spacing:.1em;font-size:12px;
+  padding:4px 12px;border-radius:999px;border:1px solid var(--edge);
+  background:var(--panel);color:#fff;transition:filter .15s;
+}
+.score-toggle:hover{filter:brightness(1.15)}
+.score-toggle.on{background:linear-gradient(90deg,#5a1a8a,#a238d6);border-color:#c060f0;color:#fff;
+  box-shadow:0 0 14px rgba(194,96,240,.45)}
+.score-toggle.off{background:var(--panel);color:var(--mut)}
 
 .adjust-btn{
   position:fixed;right:18px;bottom:18px;z-index:300;

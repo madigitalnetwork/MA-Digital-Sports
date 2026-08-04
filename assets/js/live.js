@@ -820,6 +820,77 @@ function cycleVolume(){
   if (window.Crowd) Crowd.setLevel(VOL_LEVELS[volIdx].mult);
 }
 
+/* ---- full scorecard panel — bowling figures + fall of wickets ----
+   A heavier lookup than the main poll, so it is only fetched when the
+   operator opens this panel (not on every 4s tick), and again each time
+   they reopen it, rather than on a background timer. */
+let scorecardOn = false;
+
+function updateScorecardBtn(){
+  const b = document.getElementById("scorecardToggle");
+  if (!b) return;
+  b.classList.toggle("on",  scorecardOn);
+  b.classList.toggle("off", !scorecardOn);
+}
+
+function renderScorecard(card){
+  const teamEl   = document.getElementById("scTeamName");
+  const statusEl = document.getElementById("scStatus");
+  const rowsEl   = document.getElementById("scBowlers");
+  const fowEl    = document.getElementById("scFow");
+  const exEl     = document.getElementById("scExtras");
+  if (!rowsEl) return;
+
+  teamEl.textContent = (card.teamName || S.teamB.name || "BOWLING").toUpperCase();
+
+  if (!card.bowlers || !card.bowlers.length){
+    rowsEl.innerHTML = `<div class="sc-empty">No scorecard data yet</div>`;
+  } else {
+    rowsEl.innerHTML = card.bowlers.map(b => `
+      <div class="sc-row">
+        <span class="sc-name">${b.name}</span>
+        <span class="sc-num">${b.overs}</span>
+        <span class="sc-num">${b.maidens}</span>
+        <span class="sc-num">${b.runs}</span>
+        <span class="sc-num">${b.wickets}</span>
+        <span class="sc-num">${Number(b.econ || 0).toFixed(2)}</span>
+      </div>`).join("");
+  }
+
+  fowEl.innerHTML = (card.fow && card.fow.length)
+    ? card.fow.map(w => `<span>${w.num}-<b>${w.score}</b></span>`).join("")
+    : `<span class="sc-empty" style="padding:0">—</span>`;
+
+  exEl.textContent = card.extras || 0;
+  statusEl.textContent = "";
+}
+
+async function fetchScorecard(){
+  const mid = PINNED_MATCH || S.matchId;
+  const statusEl = document.getElementById("scStatus");
+  if (!mid){
+    if (statusEl) statusEl.textContent = "No match selected yet";
+    return;
+  }
+  if (statusEl) statusEl.textContent = "Loading…";
+  try {
+    const res  = await fetch(`/api/scorecard?matchId=${encodeURIComponent(mid)}`, { cache:"no-store" });
+    const data = await res.json();
+    if (!data || !data.ok) throw new Error((data && data.reason) || "no data");
+    renderScorecard(data.card);
+  } catch (err) {
+    if (statusEl) statusEl.textContent = "Unavailable — " + err.message;
+  }
+}
+
+function toggleScorecard(){
+  scorecardOn = !scorecardOn;
+  updateScorecardBtn();
+  const stage = document.querySelector(".a-stage");
+  if (stage) stage.classList.toggle("show-scorecard", scorecardOn);
+  if (scorecardOn) fetchScorecard();
+}
+
 function initLive(){
   const p = new URLSearchParams(location.search);
   let saved = false;
@@ -832,6 +903,8 @@ function initLive(){
   if (sbtn) sbtn.addEventListener("click", toggleSound);
   const vbtn = document.getElementById("volToggle");
   if (vbtn) vbtn.addEventListener("click", cycleVolume);
+  const scbtn = document.getElementById("scorecardToggle");
+  if (scbtn) scbtn.addEventListener("click", toggleScorecard);
 
   // Always start muted — the browser only allows audio after a click, so the
   // operator taps CROWD to switch it on (that tap is the gesture).

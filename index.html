@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/base.css?v=2026080406">
-<link rel="stylesheet" href="assets/css/live.css?v=2026080406">
+<link rel="stylesheet" href="assets/css/base.css?v=2026080407">
+<link rel="stylesheet" href="assets/css/live.css?v=2026080407">
 </head>
 <body>
 <div data-nav></div>
@@ -22,6 +22,7 @@
     <button class="live-toggle off" id="liveToggle" type="button">▶ GO LIVE</button>
     <button class="sound-toggle off" id="soundToggle" type="button" title="Crowd sound">🔇 CROWD</button>
     <button class="vol-toggle" id="volToggle" type="button" title="Crowd volume — click to cycle">🔉 MED</button>
+    <button class="score-toggle off" id="scorecardToggle" type="button" title="Full bowling figures &amp; fall of wickets">📊 SCORECARD</button>
   </div>
 
   <div class="stage-wrap">
@@ -37,13 +38,35 @@
       <span class="cap-ring"><span class="photo-mask" id="capAMask"><img class="photo" id="capA" alt=""></span></span>
     </div>
 
-    <!-- ROW 1 CENTRE — scrolling top bar + stadium -->
+    <!-- ROW 1 CENTRE — scrolling top bar + stadium, or the full scorecard -->
     <div class="a-stage">
       <div class="topbar">
         <div class="marquee" id="topMarquee"><div class="marquee-track"></div></div>
       </div>
       <div class="stadium" id="stadium">
         <div class="burst" id="burst"></div>
+      </div>
+      <div class="scorecard" id="scorecardPanel">
+        <div class="sc-head">
+          <b id="scTeamName">BOWLING</b>
+          <span id="scStatus"></span>
+        </div>
+        <div class="sc-table">
+          <div class="sc-row sc-head-row">
+            <span class="sc-name">BOWLER</span>
+            <span class="sc-num">O</span>
+            <span class="sc-num">M</span>
+            <span class="sc-num">R</span>
+            <span class="sc-num">W</span>
+            <span class="sc-num">ECON</span>
+          </div>
+          <div id="scBowlers"></div>
+        </div>
+        <div class="sc-fow">
+          <div class="sc-fow-label">FALL OF WICKETS</div>
+          <div class="sc-fow-list" id="scFow"></div>
+        </div>
+        <div class="sc-extras"><span>EXTRAS</span><b id="scExtras">0</b></div>
       </div>
     </div>
 
@@ -259,8 +282,8 @@
 
 <div data-footer></div>
 
-<script src="assets/js/site.js?v=2026080406"></script>
-<script src="assets/js/crowd.js?v=2026080406"></script>
-<script src="assets/js/live.js?v=2026080406"></script>
+<script src="assets/js/site.js?v=2026080407"></script>
+<script src="assets/js/crowd.js?v=2026080407"></script>
+<script src="assets/js/live.js?v=2026080407"></script>
 </body>
 </html>

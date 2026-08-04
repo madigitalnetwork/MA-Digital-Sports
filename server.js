@@ -15,7 +15,7 @@
  */
 
 const express = require("express");
-const { fetchMatches, fetchScoreboardState, normalise } = require("./lib/cricket");
+const { fetchMatches, fetchScoreboardState, normalise, fetchFullScorecard } = require("./lib/cricket");
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -66,6 +66,20 @@ app.get("/api/live", async (req, res) => {
 });
 
 app.get("/api/img", require("./api/img.js"));
+
+app.get("/api/scorecard", async (req, res) => {
+  const matchId = req.query.matchId;
+  if (!matchId) { res.json({ ok:false, reason:"missing matchId" }); return; }
+  try {
+    const card = await cached("scorecard:" + matchId, async () => {
+      const c = await fetchFullScorecard(KEY, matchId);
+      return { ok:true, card:c };
+    });
+    res.json(card);
+  } catch (err) {
+    res.json({ ok:false, reason:err.message });
+  }
+});
 
 app.get("/api/matches", async (req, res) => {
   try {
