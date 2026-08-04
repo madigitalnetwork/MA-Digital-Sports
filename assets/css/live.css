@@ -93,13 +93,36 @@ body.stream .stage-wrap{
   transform:rotate(14deg);animation:shine 6s ease-in-out infinite;
 }
 @keyframes shine{0%,74%{left:-70%}100%{left:135%}}
-/* Both variants share a definite square box (an aspect-ratio, since a span
-   has no natural size the way an <img> does); they differ only in whether
-   that box is a circle cropping the photo, or a plain frame containing it. */
-.cap .photo-mask{
+/* The ring wrapper owns the position/float-bob and hosts the rotating light
+   (a ::before sized larger than the mask, so it isn't clipped by the mask's
+   own overflow:hidden). The mask inside just fills it exactly. */
+.cap .cap-ring{
   position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
   display:block;width:55%;aspect-ratio:1/1;
   animation:float 6.5s ease-in-out infinite;
+}
+.cap .cap-ring::before{
+  content:"";position:absolute;inset:-12%;border-radius:50%;
+  background:conic-gradient(from 0deg,
+    transparent 0deg, transparent 296deg,
+    rgba(255,225,140,.55) 322deg,
+    rgba(255,255,255,.95) 338deg,
+    rgba(255,225,140,.55) 354deg,
+    transparent 360deg);
+  opacity:0;pointer-events:none;filter:blur(1.5px);
+  animation:ringspin 3.2s linear infinite;
+}
+/* Only spins around a real captain headshot — a rotating ring around the
+   team-crest fallback would compete with the logo instead of framing a face. */
+.cap .cap-ring:has(.photo-mask.headshot)::before{ opacity:1; }
+@keyframes ringspin{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+/* Both photo variants share a definite square box (an aspect-ratio, since a
+   span has no natural size the way an <img> does); they differ only in
+   whether that box is a circle cropping the photo, or a plain frame
+   containing it. */
+.cap .photo-mask{
+  position:absolute;inset:0;display:block;
 }
 .cap .photo-mask .photo{
   position:absolute;top:0;left:0;width:100%;height:100%;
