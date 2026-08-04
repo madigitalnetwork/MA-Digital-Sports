@@ -708,18 +708,31 @@ function renderBalls(){
    ========================================================= */
 let everLive = false;   // have we ever received real match data?
 
+/* setInterval fires every POLL_MS regardless of whether the previous fetch
+   has resolved yet — the upstream call chain (live/recent/schedule feeds,
+   then leanback + squad lookups) can occasionally run past that window. If
+   an older request then resolves AFTER a newer one, applying it would shove
+   the score backwards and feed deriveFrames a snapshot that looks like it
+   went back in time — which it reads as a new innings and wipes the current
+   over strip. pollSeq tags each request so only the most recently STARTED
+   poll's response is ever applied; anything older is dropped on arrival. */
+let pollSeq = 0;
+
 async function poll(){
   if (!livePolling) return;                 // paused -> make no API calls at all
+  const seq = ++pollSeq;
   try{
     const res = await fetch(API_URL, { cache:"no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     if (!data || !data.ok) throw new Error((data && data.reason) || "no data");
+    if (seq !== pollSeq) return;             // a newer poll already started — this reply is stale
 
     applyState(data.state);
     everLive = true;
     setConn(true, data.source || "API");
   } catch(err){
+    if (seq !== pollSeq) return;
     setConn(false, err.message);
     // Only simulate a match before any real data has ever arrived (offline
     // preview). Once we have shown a real score, a failed poll (e.g. the API
