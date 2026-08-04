@@ -29,9 +29,16 @@ const BLANK_FLAG = "data:image/svg+xml;utf8," + encodeURIComponent(
      <rect width="300" height="400" fill="#0F1830"/>
      <circle cx="150" cy="150" r="120" fill="#18234A" opacity=".7"/></svg>`);
 
+/* defaults for the captain-photo crop — how much the photo is zoomed in
+   (height, as a % of the circle) and which part of it lands in view
+   (object-position Y, as a %). Operators can override either per team from
+   the Adjust panel when a particular photo needs a different crop. */
+const DEFAULT_CAP_ZOOM = 148;
+const DEFAULT_CAP_POS  = 74;
+
 let S = {
-  teamA:{ name:"Team A", short:"TBC", flag:"", captain:"CAPTAIN", photo:"" },
-  teamB:{ name:"Team B", short:"TBC", flag:"", captain:"CAPTAIN", photo:"" },
+  teamA:{ name:"Team A", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS },
+  teamB:{ name:"Team B", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS },
   runs:0, wickets:0, overs:0, ballInOver:0,
   totalOvers:20, target:0,
   pshipRuns:0, pshipBalls:0,
@@ -575,6 +582,16 @@ function render(){
   const capBMask = document.getElementById("capBMask");
   if (capAMask) capAMask.classList.toggle("headshot", !!S.teamA.isCaptainPhoto);
   if (capBMask) capBMask.classList.toggle("headshot", !!S.teamB.isCaptainPhoto);
+  // Crop tuning (zoom / vertical position) — from the Adjust panel if the
+  // operator has set one, otherwise the built-in default for both teams.
+  if (capAMask){
+    capAMask.style.setProperty("--cap-zoom", (S.teamA.capZoom || DEFAULT_CAP_ZOOM) + "%");
+    capAMask.style.setProperty("--cap-pos",  (S.teamA.capPos  ?? DEFAULT_CAP_POS) + "%");
+  }
+  if (capBMask){
+    capBMask.style.setProperty("--cap-zoom", (S.teamB.capZoom || DEFAULT_CAP_ZOOM) + "%");
+    capBMask.style.setProperty("--cap-pos",  (S.teamB.capPos  ?? DEFAULT_CAP_POS) + "%");
+  }
 
   /* score */
   if (anim("scoreRuns", `${S.runs}-${S.wickets}`)) flash("scoreRuns");
