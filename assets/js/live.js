@@ -36,6 +36,21 @@ const BLANK_FLAG = "data:image/svg+xml;utf8," + encodeURIComponent(
 const DEFAULT_CAP_ZOOM = 148;
 const DEFAULT_CAP_POS  = 74;
 
+/* Turn zoom % + position % into the two CSS vars the headshot crop actually
+   uses. Zoom oversizes the photo (as a % of the circle); position (0-100)
+   picks how much of that overflow sits above vs below the visible circle —
+   0 keeps the photo's own top edge in view, 100 keeps its bottom edge in
+   view. That's expressed as a top offset, since object-position does not
+   reliably crop a box this close to the photo's own aspect ratio. */
+function applyCapCrop(mask, zoom, pos){
+  if (!mask) return;
+  const z = zoom || DEFAULT_CAP_ZOOM;
+  const p = pos != null ? pos : DEFAULT_CAP_POS;
+  const top = -(z - 100) * (p / 100);
+  mask.style.setProperty("--cap-zoom", z + "%");
+  mask.style.setProperty("--cap-top", top.toFixed(2) + "%");
+}
+
 let S = {
   teamA:{ name:"Team A", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS },
   teamB:{ name:"Team B", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS },
@@ -584,14 +599,10 @@ function render(){
   if (capBMask) capBMask.classList.toggle("headshot", !!S.teamB.isCaptainPhoto);
   // Crop tuning (zoom / vertical position) — from the Adjust panel if the
   // operator has set one, otherwise the built-in default for both teams.
-  if (capAMask){
-    capAMask.style.setProperty("--cap-zoom", (S.teamA.capZoom || DEFAULT_CAP_ZOOM) + "%");
-    capAMask.style.setProperty("--cap-pos",  (S.teamA.capPos  ?? DEFAULT_CAP_POS) + "%");
-  }
-  if (capBMask){
-    capBMask.style.setProperty("--cap-zoom", (S.teamB.capZoom || DEFAULT_CAP_ZOOM) + "%");
-    capBMask.style.setProperty("--cap-pos",  (S.teamB.capPos  ?? DEFAULT_CAP_POS) + "%");
-  }
+  // position 0 = show the top of the photo, 100 = show the bottom; it moves
+  // the oversized photo's own top offset, which is what actually crops it.
+  applyCapCrop(capAMask, S.teamA.capZoom, S.teamA.capPos);
+  applyCapCrop(capBMask, S.teamB.capZoom, S.teamB.capPos);
 
   /* score */
   if (anim("scoreRuns", `${S.runs}-${S.wickets}`)) flash("scoreRuns");

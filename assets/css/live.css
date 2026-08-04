@@ -132,19 +132,23 @@ body.stream .stage-wrap{
 }
 
 /* Headshot variant: a real captain photo. The mask becomes a perfect circle
-   with overflow hidden, and the photo inside is deliberately oversized and
-   top-anchored so its lower ~30% (shoulders/collar) is pushed below the
-   visible circle. A captain's jersey colour never matches the current team's
-   kit anyway — Cricbuzz has one photo per player, not one per team they've
-   played for — so cropping it out avoids the clash entirely. */
+   with overflow hidden, and the photo inside is deliberately oversized. Which
+   part of it lands inside the visible circle is controlled by top (not
+   object-position — when the box and the photo share close to the same
+   aspect ratio, object-fit:cover barely crops at all inside the box, so the
+   only crop that reliably moves is the box's own offset). --cap-top is
+   computed from the zoom and position sliders — see render() in live.js.
+   A captain's jersey colour never matches the current team's kit anyway —
+   Cricbuzz has one photo per player, not one per team they've played for —
+   so cropping the shoulders/collar out avoids the clash entirely. */
 .cap .photo-mask.headshot{
   border-radius:50%;overflow:hidden;
   border:3px solid rgba(255,255,255,.18);
   box-shadow:0 12px 24px rgba(0,0,0,.6);
 }
 .cap .photo-mask.headshot .photo{
-  height:var(--cap-zoom, 148%);object-fit:cover;
-  object-position:center var(--cap-pos, 74%);filter:none;
+  height:var(--cap-zoom, 148%);top:var(--cap-top, -36%);
+  object-fit:cover;object-position:center;filter:none;
 }
 @keyframes float{
   0%,100%{transform:translate(-50%,-50%) translateY(0)}
