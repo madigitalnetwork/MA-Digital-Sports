@@ -731,6 +731,7 @@ async function poll(){
     applyState(data.state);
     everLive = true;
     setConn(true, data.source || "API");
+    checkScorecardAvailability();   // no-op if already checked for this match
   } catch(err){
     if (seq !== pollSeq) return;
     setConn(false, err.message);
@@ -823,14 +824,49 @@ function cycleVolume(){
 /* ---- full scorecard panel — bowling figures + fall of wickets ----
    A heavier lookup than the main poll, so it is only fetched when the
    operator opens this panel (not on every 4s tick), and again each time
-   they reopen it, rather than on a background timer. */
+   they reopen it, rather than on a background timer.
+
+   To answer "will this have anything in it before I tap it live on air" —
+   a small dot on the button itself shows the last-known availability:
+   grey = not checked yet, green = has bowling figures, red = came back
+   empty for this match. That check runs silently at most ONCE per match
+   (the first live poll after a new matchId appears), never on every 4s
+   tick, so it costs one extra call per match, not one per poll. */
 let scorecardOn = false;
+let scorecardAvailable = null;   // null = not checked, true/false once known
+let scCheckedMatchId   = null;
 
 function updateScorecardBtn(){
   const b = document.getElementById("scorecardToggle");
   if (!b) return;
   b.classList.toggle("on",  scorecardOn);
   b.classList.toggle("off", !scorecardOn);
+  b.classList.toggle("ready", scorecardAvailable === true);
+  b.classList.toggle("empty", scorecardAvailable === false);
+  b.title = scorecardAvailable === true
+    ? "Full bowling figures & fall of wickets — ready"
+    : scorecardAvailable === false
+      ? "Full bowling figures & fall of wickets — not available for this match"
+      : "Full bowling figures & fall of wickets";
+}
+
+/* Silent background check — does not open the panel, just learns whether
+   there's anything to show, so the operator can see that before tapping
+   it live. */
+async function checkScorecardAvailability(){
+  const mid = PINNED_MATCH || S.matchId;
+  if (!mid || mid === scCheckedMatchId) return;
+  scCheckedMatchId = mid;
+  scorecardAvailable = null;   // unknown again until this check resolves
+  updateScorecardBtn();
+  try {
+    const res  = await fetch(`/api/scorecard?matchId=${encodeURIComponent(mid)}`, { cache:"no-store" });
+    const data = await res.json();
+    scorecardAvailable = !!(data && data.ok && data.card && data.card.bowlers && data.card.bowlers.length);
+  } catch (_) {
+    scorecardAvailable = false;
+  }
+  updateScorecardBtn();
 }
 
 function renderScorecard(card){
@@ -907,6 +943,7 @@ function initLive(){
   if (vbtn) vbtn.addEventListener("click", cycleVolume);
   const scbtn = document.getElementById("scorecardToggle");
   if (scbtn) scbtn.addEventListener("click", toggleScorecard);
+  updateScorecardBtn();   // neutral (not-checked-yet) state until the first live poll
 
   // Always start muted — the browser only allows audio after a click, so the
   // operator taps CROWD to switch it on (that tap is the gesture).

@@ -617,15 +617,24 @@ body.stream .stage-wrap{
 .vol-toggle:hover{filter:brightness(1.15)}
 
 .score-toggle{
-  cursor:pointer;
+  cursor:pointer;position:relative;
   font-family:var(--cond);font-weight:700;letter-spacing:.1em;font-size:12px;
-  padding:4px 12px;border-radius:999px;border:1px solid var(--edge);
+  padding:4px 12px 4px 22px;border-radius:999px;border:1px solid var(--edge);
   background:var(--panel);color:#fff;transition:filter .15s;
 }
 .score-toggle:hover{filter:brightness(1.15)}
 .score-toggle.on{background:linear-gradient(90deg,#5a1a8a,#a238d6);border-color:#c060f0;color:#fff;
   box-shadow:0 0 14px rgba(194,96,240,.45)}
 .score-toggle.off{background:var(--panel);color:var(--mut)}
+
+/* dot shows whether there is anything to show, checked once per match, so
+   the operator knows before tapping this live on air */
+.score-toggle::before{
+  content:"";position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  width:7px;height:7px;border-radius:50%;background:var(--mut);opacity:.6;
+}
+.score-toggle.ready::before{background:var(--grn2);opacity:1;box-shadow:0 0 6px rgba(18,197,101,.8)}
+.score-toggle.empty::before{background:var(--red);opacity:1}
 
 .adjust-btn{
   position:fixed;right:18px;bottom:18px;z-index:300;
