@@ -608,6 +608,16 @@ body.stream .stage-wrap{
 .sound-toggle.on{background:linear-gradient(90deg,#0a4f7f,#1288c5);border-color:#1288c5;color:#fff}
 .sound-toggle.off{background:var(--panel);color:var(--mut)}
 
+.commentary-toggle{
+  cursor:pointer;
+  font-family:var(--cond);font-weight:700;letter-spacing:.1em;font-size:12px;
+  padding:4px 12px;border-radius:999px;border:1px solid var(--edge);
+  background:var(--panel);color:#fff;transition:filter .15s;
+}
+.commentary-toggle:hover{filter:brightness(1.15)}
+.commentary-toggle.on{background:linear-gradient(90deg,#7a4a00,#c58a12);border-color:#e0a824;color:#fff}
+.commentary-toggle.off{background:var(--panel);color:var(--mut)}
+
 .vol-toggle{
   cursor:pointer;
   font-family:var(--cond);font-weight:700;letter-spacing:.1em;font-size:12px;

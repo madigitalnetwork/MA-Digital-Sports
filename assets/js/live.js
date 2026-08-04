@@ -370,6 +370,13 @@ function playDelivery(code){
     if (x) Crowd.cheer(x);
   }
 
+  // spoken commentary — batter on strike faced this ball, current bowler bowled it
+  if (window.Commentary){
+    const batterName = (S.batters[S.striker] && S.batters[S.striker].name) || "";
+    const bowlerName = (S.bowler && S.bowler.name) || "";
+    Commentary.say(code, batterName, bowlerName);
+  }
+
   if (REDUCED){ showBurst(code); return; }
 
   /* video mode: play the clip, keep the burst, camera and crowd reactions */
@@ -817,6 +824,31 @@ function toggleSound(){
   if (window.Crowd){ soundOn ? Crowd.start() : Crowd.stop(); }
 }
 
+/* ---- voice commentary — spoken lines on every delivery, Urdu when the
+   browser has an Urdu voice installed, English otherwise (see commentary.js) ---- */
+let commentaryOn = false;
+
+function updateCommentaryBtn(){
+  const b = document.getElementById("commentaryToggle");
+  if (!b) return;
+  b.classList.toggle("on",  commentaryOn);
+  b.classList.toggle("off", !commentaryOn);
+  b.textContent = commentaryOn ? "🎙️ COMMENTARY" : "🔇 COMMENTARY";
+  if (window.Commentary){
+    b.title = window.Commentary.hasUrdu
+      ? "Voice commentary (Urdu)"
+      : "Voice commentary (English — no Urdu voice found on this device)";
+  }
+}
+
+function toggleCommentary(){
+  commentaryOn = !commentaryOn;
+  try { localStorage.setItem("maCommentary", commentaryOn ? "1" : "0"); } catch (_) {}
+  updateCommentaryBtn();
+  // this click is the user gesture the browser needs to allow speech synthesis
+  if (window.Commentary){ commentaryOn ? Commentary.start() : Commentary.stop(); }
+}
+
 /* ---- crowd volume — cycles LOW / MED / HIGH on each click ---- */
 const VOL_LEVELS = [
   { mult:0.35, label:"LOW"  },
@@ -961,11 +993,15 @@ function initLive(){
   const scbtn = document.getElementById("scorecardToggle");
   if (scbtn) scbtn.addEventListener("click", toggleScorecard);
   updateScorecardBtn();   // neutral (not-checked-yet) state until the first live poll
+  const cbtn = document.getElementById("commentaryToggle");
+  if (cbtn) cbtn.addEventListener("click", toggleCommentary);
 
   // Always start muted — the browser only allows audio after a click, so the
-  // operator taps CROWD to switch it on (that tap is the gesture).
+  // operator taps CROWD / COMMENTARY to switch each on (that tap is the gesture).
   soundOn = false;
   updateSoundBtn();
+  commentaryOn = false;
+  updateCommentaryBtn();
 
   let savedVolIdx = 1;
   try {
