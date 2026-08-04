@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/base.css?v=2026080409">
-<link rel="stylesheet" href="assets/css/live.css?v=2026080409">
+<link rel="stylesheet" href="assets/css/base.css?v=2026080410">
+<link rel="stylesheet" href="assets/css/live.css?v=2026080410">
 </head>
 <body>
 <div data-nav></div>
@@ -35,7 +35,7 @@
       <img class="flag" id="flagA" alt="">
       <span class="veil"></span><span class="shine"></span>
       <span class="role" id="roleA">CAPTAIN</span>
-      <span class="cap-ring"><span class="photo-mask" id="capAMask"><img class="photo" id="capA" alt=""></span></span>
+      <span class="cap-ring" id="capARing"><span class="photo-mask" id="capAMask"><img class="photo" id="capA" alt=""></span></span>
     </div>
 
     <!-- ROW 1 CENTRE — scrolling top bar + stadium, or the full scorecard -->
@@ -75,7 +75,7 @@
       <img class="flag" id="flagB" alt="">
       <span class="veil"></span><span class="shine"></span>
       <span class="role" id="roleB">CAPTAIN</span>
-      <span class="cap-ring"><span class="photo-mask" id="capBMask"><img class="photo" id="capB" alt=""></span></span>
+      <span class="cap-ring" id="capBRing"><span class="photo-mask" id="capBMask"><img class="photo" id="capB" alt=""></span></span>
     </div>
 
     <!-- ROW 2 — team banners + logo strip -->
@@ -205,6 +205,7 @@
       <label><span>Photo zoom <b class="advalue">148</b>%</span><input type="range" min="110" max="220" step="1" value="148" data-field="teamA.capZoom"></label>
       <label><span>Photo position <b class="advalue">74</b>%</span><input type="range" min="0" max="100" step="1" value="74" data-field="teamA.capPos"></label>
     </div>
+    <label><span>Circle size <b class="advalue">55</b>%</span><input type="range" min="30" max="90" step="1" value="55" data-field="teamA.capSize"></label>
     <label><span>Flag image (panel background)</span><input data-field="teamA.flag" placeholder="assets/img/pak-flag.jpg"></label>
   </fieldset>
 
@@ -222,6 +223,7 @@
       <label><span>Photo zoom <b class="advalue">148</b>%</span><input type="range" min="110" max="220" step="1" value="148" data-field="teamB.capZoom"></label>
       <label><span>Photo position <b class="advalue">74</b>%</span><input type="range" min="0" max="100" step="1" value="74" data-field="teamB.capPos"></label>
     </div>
+    <label><span>Circle size <b class="advalue">55</b>%</span><input type="range" min="30" max="90" step="1" value="55" data-field="teamB.capSize"></label>
     <label><span>Flag image (panel background)</span><input data-field="teamB.flag"></label>
   </fieldset>
 
@@ -282,8 +284,8 @@
 
 <div data-footer></div>
 
-<script src="assets/js/site.js?v=2026080409"></script>
-<script src="assets/js/crowd.js?v=2026080409"></script>
-<script src="assets/js/live.js?v=2026080409"></script>
+<script src="assets/js/site.js?v=2026080410"></script>
+<script src="assets/js/crowd.js?v=2026080410"></script>
+<script src="assets/js/live.js?v=2026080410"></script>
 </body>
 </html>

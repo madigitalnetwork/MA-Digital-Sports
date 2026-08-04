@@ -35,6 +35,7 @@ const BLANK_FLAG = "data:image/svg+xml;utf8," + encodeURIComponent(
    the Adjust panel when a particular photo needs a different crop. */
 const DEFAULT_CAP_ZOOM = 148;
 const DEFAULT_CAP_POS  = 74;
+const DEFAULT_CAP_SIZE = 55;   // circle diameter, as a % of the captain box
 
 /* Turn zoom % + position % into the two CSS vars the headshot crop actually
    uses. Zoom oversizes the photo (as a % of the circle); position (0-100)
@@ -52,8 +53,8 @@ function applyCapCrop(mask, zoom, pos){
 }
 
 let S = {
-  teamA:{ name:"Team A", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS },
-  teamB:{ name:"Team B", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS },
+  teamA:{ name:"Team A", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS, capSize:DEFAULT_CAP_SIZE },
+  teamB:{ name:"Team B", short:"TBC", flag:"", captain:"CAPTAIN", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS, capSize:DEFAULT_CAP_SIZE },
   runs:0, wickets:0, overs:0, ballInOver:0,
   totalOvers:20, target:0,
   pshipRuns:0, pshipBalls:0,
@@ -603,6 +604,11 @@ function render(){
   // the oversized photo's own top offset, which is what actually crops it.
   applyCapCrop(capAMask, S.teamA.capZoom, S.teamA.capPos);
   applyCapCrop(capBMask, S.teamB.capZoom, S.teamB.capPos);
+  // Circle diameter — independent of the zoom/position crop above.
+  const capARing = document.getElementById("capARing");
+  const capBRing = document.getElementById("capBRing");
+  if (capARing) capARing.style.setProperty("--cap-ring-size", (S.teamA.capSize || DEFAULT_CAP_SIZE) + "%");
+  if (capBRing) capBRing.style.setProperty("--cap-ring-size", (S.teamB.capSize || DEFAULT_CAP_SIZE) + "%");
 
   /* score */
   if (anim("scoreRuns", `${S.runs}-${S.wickets}`)) flash("scoreRuns");
@@ -1144,8 +1150,8 @@ const DEMO_BALLS = ["1","0","4","1","6","0","W","2","1","4","0","1"];
 let demoI = 0;
 
 function demoSeed(){
-  S.teamA = { name:"Pakistan", short:"PAK", flag:"", captain:"Captain", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS };
-  S.teamB = { name:"Namibia",  short:"NAM", flag:"", captain:"Captain", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS };
+  S.teamA = { name:"Pakistan", short:"PAK", flag:"", captain:"Captain", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS, capSize:DEFAULT_CAP_SIZE };
+  S.teamB = { name:"Namibia",  short:"NAM", flag:"", captain:"Captain", photo:"", capZoom:DEFAULT_CAP_ZOOM, capPos:DEFAULT_CAP_POS, capSize:DEFAULT_CAP_SIZE };
   S.toss = "NAM opt to bowl";
   S.statusText = "Pakistan batting";
   S.totalOvers = 20;

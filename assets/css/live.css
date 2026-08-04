@@ -98,7 +98,7 @@ body.stream .stage-wrap{
    own overflow:hidden). The mask inside just fills it exactly. */
 .cap .cap-ring{
   position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
-  display:block;width:55%;aspect-ratio:1/1;
+  display:block;width:var(--cap-ring-size, 55%);aspect-ratio:1/1;
   animation:float 6.5s ease-in-out infinite;
 }
 .cap .cap-ring::before{
