@@ -1367,29 +1367,16 @@ function fitStage(){
   const wrap  = stage && stage.parentElement;
   if (!stage || !wrap) return;
 
-  const stream = document.body.classList.contains("stream");
-
   /* below 900px the CSS drops the fixed stage for a stacked layout */
-  if (window.innerWidth <= 900 && !stream){
+  if (window.innerWidth <= 900 && !document.body.classList.contains("stream")){
     stage.style.transform = "";
     return;
   }
 
-  if (!stream){
-    // Measure the room actually left for the stage instead of assuming a
-    // fixed chrome height — the status strip can wrap onto two lines (more
-    // buttons, a zoomed-in browser, a narrow window), and a guessed
-    // constant breaks the moment reality no longer matches it.
-    const top     = wrap.getBoundingClientRect().top;
-    // site.js replaces the [data-footer] placeholder with a real <footer>
-    // via outerHTML on DOMContentLoaded, so by the time this runs the
-    // placeholder attribute is gone — select the actual element instead.
-    const footer  = document.querySelector("footer");
-    const footerH = footer ? footer.getBoundingClientRect().height : 0;
-    const avail   = window.innerHeight - top - footerH - 24;   // 24 = .live-wrap bottom padding
-    wrap.style.setProperty("--stage-max-h", Math.max(200, avail) + "px");
-  }
-
+  // wrap's own box is sized by native CSS flex layout (body.live-page /
+  // .live-wrap / .stage-wrap forming a flex column, see live.css) — the
+  // browser keeps that in sync with resizes AND zoom changes on its own,
+  // so all that's needed here is reading the box it already produced.
   const scale = Math.min(wrap.clientWidth / 1920, wrap.clientHeight / 1080);
   stage.style.transform = `scale(${scale})`;
   positionLED();

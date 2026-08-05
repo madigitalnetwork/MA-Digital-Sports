@@ -14,18 +14,22 @@
      batter 1      |     batter 2     |     bowler
    ========================================================= */
 
+/* body.live-page + main.live-wrap form a full-height flex column, so
+   stage-wrap's box (flex:1 below) is whatever room the browser's own
+   layout engine leaves after the header, status strip and footer take
+   their natural height — recalculated by the browser itself on every
+   resize AND every zoom change, with no JS measurement or guessed
+   constant involved. A guessed pixel budget (the old approach) breaks
+   the instant reality no longer matches the guess; native flex layout
+   can't drift out of sync with itself the way a JS-measured value can. */
+body.live-page{display:flex;flex-direction:column;min-height:100vh}
+body.live-page > main.live-wrap{flex:1;min-height:0;display:flex;flex-direction:column}
+
 .live-wrap{padding:10px 14px 24px}
 
-/* the 16:9 box — never taller than the viewport. --stage-max-h is set by
-   fitStage() in live.js from an actual measurement of the room left above
-   and below it, not a guessed constant — the status strip can wrap onto
-   two lines (more buttons, a zoomed-in browser, a narrow window), and a
-   fixed number here breaks the moment that guess turns out wrong. */
 .stage-wrap{
   position:relative;
-  width:100%;
-  aspect-ratio:16 / 9;
-  max-height:var(--stage-max-h, 1000px);
+  flex:1;min-height:0;width:100%;
   margin:0 auto;
   overflow:hidden;
   border-radius:16px;
@@ -68,7 +72,7 @@ body.stream .status-strip,
 body.stream .adjust-btn{display:none}
 body.stream .live-wrap{padding:0}
 body.stream .stage-wrap{
-  width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;
+  flex:none;width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;
 }
 
 /* =========================================================
@@ -690,8 +694,10 @@ body.stream .stage-wrap{
    nothing, so we drop back to a normal stacked flow layout.
    ========================================================= */
 @media(max-width:900px){
+  body.live-page{display:block}
+  body.live-page > main.live-wrap{display:block}
   .stage-wrap{
-    position:static;width:auto;height:auto;aspect-ratio:auto;overflow:visible;
+    flex:none;position:static;width:auto;height:auto;aspect-ratio:auto;overflow:visible;
   }
   .stage{
     position:static;width:auto;height:auto;
