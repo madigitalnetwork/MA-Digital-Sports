@@ -16,11 +16,16 @@
 
 .live-wrap{padding:10px 14px 24px}
 
-/* the 16:9 box — never taller than the viewport */
+/* the 16:9 box — never taller than the viewport. --stage-max-h is set by
+   fitStage() in live.js from an actual measurement of the room left above
+   and below it, not a guessed constant — the status strip can wrap onto
+   two lines (more buttons, a zoomed-in browser, a narrow window), and a
+   fixed number here breaks the moment that guess turns out wrong. */
 .stage-wrap{
   position:relative;
-  width:min(100%, calc((100vh - 150px) * 16 / 9));
+  width:100%;
   aspect-ratio:16 / 9;
+  max-height:var(--stage-max-h, 1000px);
   margin:0 auto;
   overflow:hidden;
   border-radius:16px;
